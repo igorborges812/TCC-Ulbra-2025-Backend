@@ -6,18 +6,17 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .apps import RecipesConfig
 from .models import Recipe
-from .serializers import RecipeSerializer, IngredientSerializer
+from .serializers import RecipeSerializer
 from supabase import create_client, Client
-from rest_framework import generics, viewsets
+from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 
-class RegisterRecipe(generics.CreateAPIView):
+class RegisterRecipeView(generics.CreateAPIView):
     queryset = Recipe.objects.all()
-    # TODO, mudar para IsAuthenticated
     permission_classes = (IsAuthenticated,)
     serializer_class = RecipeSerializer
 
@@ -66,9 +65,14 @@ class RegisterRecipe(generics.CreateAPIView):
 
             image_url = str(response.url)
             request.data['image_url'] = image_url
+
+            # try:
+            #     postResponse = super().post(request, *args, **kwargs)
+            # except:
+            #     supabase.storage.from_("recipes").remove([f"{image_name}.jpg"])
         return super().post(request, *args, **kwargs)
 
-class GetRecipes(generics.ListAPIView):
+class GetRecipesView(generics.ListAPIView):
     queryset = Recipe.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = RecipeSerializer
@@ -85,7 +89,7 @@ class GetRecipes(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-class GetRecipeByName(generics.ListAPIView):
+class GetRecipeByNameView(generics.ListAPIView):
     serializer_class = RecipeSerializer
     permission_classes = (AllowAny,)
 
@@ -107,3 +111,15 @@ class GetRecipeByName(generics.ListAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({"error": "No recipes found matching the passed title."}, status=status.HTTP_404_NOT_FOUND)
+
+class RecipeUpdateView(generics.UpdateAPIView):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    permission_classes = (AllowAny,)
+    lookup_field = 'id'
+
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)

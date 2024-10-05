@@ -39,18 +39,13 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients', None)
-        instance.title = validated_data('title', instance.title)
-        instance.text_area = validated_data('text_area', instance.text_area)
-        instance.image_url = validated_data('image_url', instance.image_url)
-        #instance.category = validated_data('category', instance.category)
+        instance.title = validated_data.get('title', instance.title)
+        instance.text_area = validated_data.get('text_area', instance.text_area)
+        instance.image_url = validated_data.get('image_url', instance.image_url)
+        # instance.category = validated_data.get('category', instance.category)
 
         if ingredients_data is not None:
             instance.ingredients = ingredients_data
 
         instance.save()
         return instance
-
-
-
-
-
