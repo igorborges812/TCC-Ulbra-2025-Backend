@@ -56,10 +56,10 @@ class RegisterRecipeView(generics.CreateAPIView):
             except Exception as e:
                 raise Exception(f"[ERROR] Failed to process base64 image: {str(e)}")
 
-            supabase: Client = create_client(RecipesConfig.supabase_url, RecipesConfig.supabase_key)
+            supabase: Client = create_client(RecipesConfig.sb_url, RecipesConfig.sb_key)
 
-            response = supabase.storage.from_("recipes").upload(
-                path=f"recipes/{uploaded_image.name}",
+            response = supabase.storage.from_(RecipesConfig.sb_bucket_name).upload(
+                path=f"{RecipesConfig.sb_bucket_path}{uploaded_image.name}",
                 file=uploaded_image.read(),
                 file_options={"content-type": f"{uploaded_image.content_type}"}
             )
@@ -78,7 +78,7 @@ class RegisterRecipeView(generics.CreateAPIView):
         # If anything goes wrong, rollback the transaction
         except Exception as e:
             try:
-                res = supabase.storage.from_("recipes").remove(f"recipes/{image_name}.jpg")
+                res = supabase.storage.from_(RecipesConfig.sb_bucket_name).remove(f"{RecipesConfig.sb_bucket_path}{image_name}.jpg")
                 if res:
                     print(f"[INFO] Deleted image {image_name}.jpg from remote bucket")
                 else:
