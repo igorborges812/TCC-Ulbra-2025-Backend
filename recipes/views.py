@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import transaction
+from rest_framework.exceptions import ValidationError
 
 
 class RegisterRecipeView(generics.CreateAPIView):
@@ -65,7 +66,7 @@ class RegisterRecipeView(generics.CreateAPIView):
             )
 
             if not response.is_success:
-                raise Exception("[ERROR] Image upload to remote bucket failed")
+                return Response({"error": "Image upload to remote bucket failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             image_url = str(response.url)
 
@@ -76,7 +77,7 @@ class RegisterRecipeView(generics.CreateAPIView):
             postResponse.data['image_url'] = image_url
 
         # If anything goes wrong, rollback the transaction
-        except Exception as e:
+        except ValidationError as e:
             try:
                 res = supabase.storage.from_(RecipesConfig.sb_bucket_name).remove(f"{RecipesConfig.sb_bucket_path}{image_name}.jpg")
                 if res:
@@ -84,9 +85,12 @@ class RegisterRecipeView(generics.CreateAPIView):
                 else:
                     print(f"[INFO] No images named {image_name}.jpg were found in remote bucket for removal")
             except:
-                print("[ERROR] Failed to delete image from remote bucket")
                 pass
 
+            return Response({"error": str(e)}, status=e.status_code)
+
+        # Catch all for unexpected exceptions
+        except Exception as e:
             return Response({"error": str(e)}, status=e.status_code)
 
         return postResponse
