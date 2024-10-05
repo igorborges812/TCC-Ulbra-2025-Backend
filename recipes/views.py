@@ -115,7 +115,7 @@ class GetRecipeByNameView(generics.ListAPIView):
 class RecipeUpdateView(generics.UpdateAPIView):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
     lookup_field = 'id'
 
     def update(self, request, *args, **kwargs):
