@@ -141,8 +141,26 @@ class RecipeUpdateView(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
     lookup_field = 'id'
 
-    def update(self, request, *args, **kwargs):
+    @swagger_auto_schema(
+    responses={201: openapi.Response(
+                description="Receita atualizada",
+                schema=RecipeSerializer
+            )},
+    operation_description="Rota que permite a atualização dos dados de uma receita pelo ID através do PUT",
+    operation_summary="Atualiza uma receita",
+    tags=["Receitas"]
+    )
+    def put(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
 
+    @swagger_auto_schema(
+    responses={201: openapi.Response(
+                description="Receita atualizada",
+                schema=RecipeSerializer
+            )},
+    operation_description="Rota que permite a atualização parcial dos dados de uma receita pelo ID através do PATCH",
+    operation_summary="Atualiza uma receita",
+    tags=["Receitas"]
+    )
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
