@@ -16,7 +16,7 @@ class RegisterUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = UserRegistrationSerializer
-    
+
     @swagger_auto_schema(
         responses={201: UserSerializer},
         operation_description="Rota para registro de um novo usuário",
@@ -24,7 +24,7 @@ class RegisterUserView(generics.CreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-    
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 

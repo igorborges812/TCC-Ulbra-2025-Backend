@@ -11,7 +11,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('O email é obrigatório')
         if not nickname:
             raise ValueError('O nickname é obrigatório')
-        
+
         email = self.normalize_email(email)
         user = self.model(email=email, nickname=nickname, **extra_fields)
         user.set_password(password)
@@ -36,7 +36,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.nickname
-    
+
     def deactivate_account(self):
         """Desativa a conta do usuário."""
         # Gerar um hash único baseado no ID
