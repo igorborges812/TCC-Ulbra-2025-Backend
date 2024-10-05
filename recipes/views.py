@@ -13,6 +13,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import transaction
 
 
 class RegisterRecipeView(generics.CreateAPIView):
@@ -29,31 +30,34 @@ class RegisterRecipeView(generics.CreateAPIView):
         operation_summary="Cria uma receita",
         tags=["Receitas"]
     )
+    @transaction.atomic  # Ensures the entire operation is atomic
     def post(self, request, *args, **kwargs):
-        # Get base64 string from the request
         base64_image = request.data.get('image_base64')
-        if base64_image:
-            # Decode the base64 string and create an image file
+        try:
+            # Save the recipe without the image_url first
+            postResponse = super().post(request, *args, **kwargs)
+
+            if not base64_image:
+                return postResponse
+
+            # Decode and process the base64 image
             try:
                 image_data = base64.b64decode(base64_image)
                 image = Image.open(BytesIO(image_data)).convert('RGB')
                 temp_image = BytesIO()
-                #image_format = image.format if image.format else 'PNG' # Default to PNG if format is not provided
                 image_format = 'JPEG'
                 image.save(temp_image, format=image_format)
                 temp_image.seek(0)
+                image_name = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase + string.digits, k=30))
 
-                image_name = ''.join(random.choices(string.ascii_lowercase + string.ascii_uppercase + string.digits, k=20))
                 # Create a SimpleUploadedFile instance for the image
                 uploaded_image = SimpleUploadedFile(f"{image_name}.jpg", temp_image.read(), content_type=f"image/{image_format}")
 
             except Exception as e:
-                return Response({"error": f"Failed to process base64 image: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+                raise Exception(f"[ERROR] Failed to process base64 image: {str(e)}")
 
-            # Initialize Supabase client
             supabase: Client = create_client(RecipesConfig.supabase_url, RecipesConfig.supabase_key)
 
-            # Upload the image to Supabase storage
             response = supabase.storage.from_("recipes").upload(
                 path=f"recipes/{uploaded_image.name}",
                 file=uploaded_image.read(),
@@ -61,16 +65,31 @@ class RegisterRecipeView(generics.CreateAPIView):
             )
 
             if not response.is_success:
-                return Response({"error": "Image upload failed"}, status=status.HTTP_400_BAD_REQUEST)
+                raise Exception("[ERROR] Image upload to remote bucket failed")
 
             image_url = str(response.url)
-            request.data['image_url'] = image_url
 
-            # try:
-            #     postResponse = super().post(request, *args, **kwargs)
-            # except:
-            #     supabase.storage.from_("recipes").remove([f"{image_name}.jpg"])
-        return super().post(request, *args, **kwargs)
+            # Update the database with the image_url
+            recipe = Recipe.objects.get(pk=postResponse.data['id'])  # Get the saved recipe object
+            recipe.image_url = image_url
+            recipe.save()
+            postResponse.data['image_url'] = image_url
+
+        # If anything goes wrong, rollback the transaction
+        except Exception as e:
+            try:
+                res = supabase.storage.from_("recipes").remove(f"recipes/{image_name}.jpg")
+                if res:
+                    print(f"[INFO] Deleted image {image_name}.jpg from remote bucket")
+                else:
+                    print(f"[INFO] No images named {image_name}.jpg were found in remote bucket for removal")
+            except:
+                print("[ERROR] Failed to delete image from remote bucket")
+                pass
+
+            return Response({"error": str(e)}, status=e.status_code)
+
+        return postResponse
 
 class GetRecipesView(generics.ListAPIView):
     queryset = Recipe.objects.all()
