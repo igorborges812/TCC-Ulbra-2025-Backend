@@ -121,6 +121,24 @@ class GetRecipesView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
+class GetRecipeByIdView(generics.RetrieveAPIView):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    permission_classes = (AllowAny,)
+    lookup_field = 'id'
+
+    @swagger_auto_schema(
+    responses={201: openapi.Response(
+                description="Objeto JSON da receita encontrada com base no ID passado",
+                schema=RecipeSerializer
+            )},
+    operation_description="Rota que retorna um objeto JSON de uma receita que tenha o mesmo ID que foi passado na requisição",
+    operation_summary="Retorna uma receita com base no ID",
+    tags=["Receitas"]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
 class GetRecipeByNameView(generics.ListAPIView):
     serializer_class = RecipeSerializer
     permission_classes = (AllowAny,)
