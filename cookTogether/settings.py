@@ -9,9 +9,12 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import os
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -158,3 +161,9 @@ SWAGGER_SETTINGS = {
     },
     'USE_SESSION_AUTH': False,
 }
+
+SB_BUCKET_NAME = "recipes"
+SB_BUCKET_PATH = "recipes/"
+
+SB_URL: str = os.environ.get("SUPABASE_URL")
+SB_KEY: str = os.environ.get("SUPABASE_KEY")

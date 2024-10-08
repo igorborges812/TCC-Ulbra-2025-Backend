@@ -4,7 +4,7 @@ from io import BytesIO
 from PIL import Image
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .apps import RecipesConfig
+from django.conf import settings
 from .models import Recipe
 from .serializers import RecipeSerializer
 from supabase import create_client, Client
@@ -18,6 +18,14 @@ from rest_framework.exceptions import ValidationError
 
 
 class RegisterRecipeView(generics.CreateAPIView):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.sb_bucket_name = settings.SB_BUCKET_NAME
+        self.sb_bucket_path = settings.SB_BUCKET_PATH
+        self.sb_url = settings.SB_URL
+        self.sb_key = settings.SB_KEY
+
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = RecipeSerializer
@@ -30,6 +38,7 @@ class RegisterRecipeView(generics.CreateAPIView):
         operation_description="Rota para registro de uma nova receita",
         operation_summary="Cria uma receita",
         tags=["Receitas"]
+
     )
     @transaction.atomic  # Ensures the entire operation is atomic
     def post(self, request, *args, **kwargs):
@@ -57,10 +66,10 @@ class RegisterRecipeView(generics.CreateAPIView):
             except Exception as e:
                 raise Exception(f"[ERROR] Failed to process base64 image: {str(e)}")
 
-            supabase: Client = create_client(RecipesConfig.sb_url, RecipesConfig.sb_key)
+            supabase: Client = create_client(self.sb_url, self.sb_key)
 
-            response = supabase.storage.from_(RecipesConfig.sb_bucket_name).upload(
-                path=f"{RecipesConfig.sb_bucket_path}{uploaded_image.name}",
+            response = supabase.storage.from_(self.sb_bucket_name).upload(
+                path=f"{self.sb_bucket_path}{uploaded_image.name}",
                 file=uploaded_image.read(),
                 file_options={"content-type": f"{uploaded_image.content_type}"}
             )
@@ -79,7 +88,7 @@ class RegisterRecipeView(generics.CreateAPIView):
         # If anything goes wrong, rollback the transaction
         except ValidationError as e:
             try:
-                res = supabase.storage.from_(RecipesConfig.sb_bucket_name).remove(f"{RecipesConfig.sb_bucket_path}{image_name}.jpg")
+                res = supabase.storage.from_(self.sb_bucket_name).remove(f"{self.sb_bucket_path}{image_name}.jpg")
                 if res:
                     print(f"[INFO] Deleted image {image_name}.jpg from remote bucket")
                 else:
@@ -87,11 +96,11 @@ class RegisterRecipeView(generics.CreateAPIView):
             except:
                 pass
 
-            return Response({"error": str(e)}, status=e.status_code)
+            return Response({"description": "Erro ao salvar ao salvar receita", "error": str(e)}, status=e.status_code)
 
         # Catch all for unexpected exceptions
         except Exception as e:
-            return Response({"error": str(e)}, status=e.status_code)
+            return Response({"description": "Ocorreu um erro desconhecido", "error": str(e)}, status=e.status_code)
 
         return postResponse
 

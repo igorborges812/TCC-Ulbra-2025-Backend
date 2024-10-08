@@ -41,6 +41,11 @@ class UserUpdateView(generics.RetrieveUpdateAPIView):
 class DeactivateUserView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return UserSerializer
+        return None
+
     def post(self, request, *args, **kwargs):
         user = self.request.user
         user.deactivate_account()
