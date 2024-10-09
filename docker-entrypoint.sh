@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
-# apply database migrations
+# Apply database migrations
 python manage.py migrate --noinput
 
-python manage.py runserver 0.0.0.0:8000
+# Run wsgi server
+gunicorn --bind 0.0.0.0:8000 cookTogether.wsgi:application
