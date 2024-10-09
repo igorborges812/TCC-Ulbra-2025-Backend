@@ -42,17 +42,17 @@ class RegisterRecipeView(generics.CreateAPIView):
     )
     @transaction.atomic  # Ensures the entire operation is atomic
     def post(self, request, *args, **kwargs):
-        base64_image = request.data.get('image_base64')
+        image_base64 = request.data.get('image_base64')
         try:
             # Save the recipe without the image_url first
             postResponse = super().post(request, *args, **kwargs)
 
-            if not base64_image:
+            if not image_base64:
                 return postResponse
 
             # Decode and process the base64 image
             try:
-                image_data = base64.b64decode(base64_image)
+                image_data = base64.b64decode(image_base64)
                 image = Image.open(BytesIO(image_data)).convert('RGB')
                 temp_image = BytesIO()
                 image_format = 'JPEG'
@@ -75,7 +75,7 @@ class RegisterRecipeView(generics.CreateAPIView):
             )
 
             if not response.is_success:
-                return Response({"error": "Image upload to remote bucket failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"error": "Falha ao enviar arquivo para armazenamento remoto."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             image_url = str(response.url)
 
@@ -96,11 +96,11 @@ class RegisterRecipeView(generics.CreateAPIView):
             except:
                 pass
 
-            return Response({"description": "Erro ao salvar ao salvar receita", "error": str(e)}, status=e.status_code)
+            return Response({"error": "Erro ao salvar ao salvar receita", "details": str(e)}, status=e.status_code)
 
         # Catch all for unexpected exceptions
         except Exception as e:
-            return Response({"description": "Ocorreu um erro desconhecido", "error": str(e)}, status=e.status_code)
+            return Response({"error": "Ocorreu um erro desconhecido", "details": str(e)}, status=e.status_code)
 
         return postResponse
 
@@ -160,7 +160,7 @@ class GetRecipeByNameView(generics.ListAPIView):
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            return Response({"error": "No recipes found matching the passed title."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Não foram encontradas receitas que contém o nome utilizado."}, status=status.HTTP_404_NOT_FOUND)
 
 class RecipeUpdateView(generics.UpdateAPIView):
     queryset = Recipe.objects.all()
