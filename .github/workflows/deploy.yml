@@ -11,6 +11,20 @@ jobs:
     name: Deploy to VM
     steps:
       - uses: actions/checkout@v3
+
+      - name: Generate .env before deploy
+        run: |
+          cat <<- EOF > .env
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY=${{ secrets.SUPABASE_MASTER_KEY }}
+          DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+          DATABASE_USER=${{ secrets.DATABASE_USER }}
+          DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+          DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+          DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+          DATABASE_SCHEMA=${{ secrets.DATABASE_SCHEMA }}
+          EOF
+
       - name: Deploy via ssh
         uses: easingthemes/ssh-deploy@v5.1.0
         with:
@@ -20,9 +34,9 @@ jobs:
           REMOTE_PORT: ${{ secrets.VM_SSH_PORT }}
           TARGET: "${{ secrets.VM_REMOTE_TARGET_FOLDER }}"
           EXCLUDE: ".git/"
+          SCRIPT_AFTER_REQUIRED: true
           SCRIPT_AFTER: |
             cd ${{ secrets.VM_REMOTE_TARGET_FOLDER }}
-            docker compose down
-            docker compose up --build --force-recreate -d
+            docker compose down && \
+            docker compose up --build --force-recreate -d && \
             docker image prune -f
-          SCRIPT_AFTER_REQUIRED: true
