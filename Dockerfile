@@ -8,11 +8,16 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+
+RUN \
+    apk add --no-cache python3 postgresql-libs && \
+    apk add --no-cache --virtual .build-deps gcc python3-dev musl-dev postgresql-dev && \
+    python3 -m pip install -r requirements.txt --no-cache-dir && \
+    apk --purge del .build-deps
 
 COPY . .
 
 RUN ["chmod", "+x", "./docker-entrypoint.sh"]
 
-CMD ["./docker-entrypoint.sh", "-n"]
+CMD ["./docker-entrypoint.sh"]
