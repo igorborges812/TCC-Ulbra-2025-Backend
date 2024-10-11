@@ -1,0 +1,22 @@
+services:
+  nginx:
+    container_name: nginx-initiate
+    image: nginx:1.27.2-alpine
+    volumes:
+      - ./nginx-initiate.conf:/etc/nginx/nginx.conf:ro
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    ports:
+      - "80:80"
+      - "443:443"
+
+  certbot:
+    container_name: certbot-initiate
+    image: certbot/certbot:v2.11.0
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    entrypoint: >-
+      certbot certonly --reinstall --webroot --webroot-path=/var/www/certbot
+      --register-unsafely-without-email --agree-tos --no-eff-email
+      -d ${DOMAIN}
