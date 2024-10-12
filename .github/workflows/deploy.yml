@@ -23,6 +23,8 @@ jobs:
           DATABASE_HOST=${{ secrets.DATABASE_HOST }}
           DATABASE_PORT=${{ secrets.DATABASE_PORT }}
           DATABASE_SCHEMA=${{ secrets.DATABASE_SCHEMA }}
+          DJANGO_ENV=prod
+          DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}'
           EOF
 
       - name: Deploy via ssh
@@ -37,6 +39,14 @@ jobs:
           SCRIPT_AFTER_REQUIRED: true
           SCRIPT_AFTER: |
             cd ${{ secrets.VM_REMOTE_TARGET_FOLDER }}
-            docker compose down && \
-            docker compose up --build --force-recreate -d && \
-            docker image prune -f
+            if [ ! -e ./data/finished-cert-bootstrap ]; then
+                echo "##### INICIANDO BOOTSTRAP DE CERTIFICADO #####"
+                chmod +x ./deploy/cert-bootstrap.sh
+                sudo ./deploy/cert-bootstrap.sh cooktogether.duckdns.org
+                sleep 5
+                docker compose up --build --force-recreate -d backend nginx
+            else
+                docker compose down && \
+                docker compose up --build --force-recreate -d backend nginx && \
+                docker image prune -f
+            fi
