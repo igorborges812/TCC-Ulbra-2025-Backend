@@ -15,10 +15,13 @@ if [ -z "$DOMAIN" ]; then
     exit 1
 fi
 
-USER_HOME=$(eval echo ~"${SUDO_USER:-$(whoami)}")
-DATA_PATH="$USER_HOME/cooktogether/data/certbot"
+USER_HOME="$(eval echo ~"${SUDO_USER:-$(whoami)}")"
 APP_DIR="$USER_HOME/cooktogether"
+DATA_PATH="$APP_DIR/data/certbot"
 DEPLOY_DIR="$APP_DIR/deploy"
+
+export APP_DIR
+export DEPLOY_DIR
 
 echo "Utilizando domain $DOMAIN..."
 sleep 5
