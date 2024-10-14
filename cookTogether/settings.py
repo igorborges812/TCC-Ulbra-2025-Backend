@@ -27,13 +27,34 @@ if os.getenv("DJANGO_ENV") == "prod":
     # SECURITY WARNING: don't run with debug turned on in production!
     DEBUG = False
 
-    ALLOWED_HOSTS = ["backend"]
+    ALLOWED_HOSTS = ['cooktogether.duckdns.org']
 
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = f'{os.getenv("DJANGO_SECRET_KEY")}'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    CSRF_TRUSTED_ORIGINS = ['https://cooktogether.duckdns.org']
 
+    # Protects against MIME type sniffing attacks by enabling the header X-Content-Type-Options: nosniff
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    # Enables the browser’s XSS filter by setting the header X-XSS-Protection: 1; mode=block
+    SECURE_BROWSER_XSS_FILTER = True
+
+    # This setting adds the X-Frame-Options header to all HTTP responses. This protects against clickjacking attacks
+    X_FRAME_OPTIONS = 'DENY'
+
+    # Force HTTPS connections only
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    # Force HTTPS connections. Redundant because of NGINX, but good to have
+    SECURE_SSL_REDIRECT = True
+    # Trust that the connection is secure by looking at the header X-Forwarded-Proto set by NGINX
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    # Database
+    # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -46,7 +67,7 @@ if os.getenv("DJANGO_ENV") == "prod":
         }
     }
 
-    SB_BUCKET_NAME = "recipes_dev"
+    SB_BUCKET_NAME = "recipes"
 
 else:
     DEBUG = True
@@ -118,10 +139,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'cookTogether.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
 # Password validation
