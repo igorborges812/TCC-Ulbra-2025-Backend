@@ -14,7 +14,8 @@ class Recipe(models.Model):
     title = models.CharField(max_length=100)
     ingredients = models.JSONField(null=False)
     text_area = models.TextField(blank=False, null=False)
-    image_url = models.CharField(max_length=200, blank=True, null=True)
+    # image_url = models.CharField(max_length=200, blank=True, null=True)
+    image = models.ImageField(null=True, blank=True)
     # category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self) -> str:

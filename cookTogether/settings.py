@@ -23,6 +23,15 @@ SB_URL: str = os.environ.get("SUPABASE_URL")
 SB_KEY: str = os.environ.get("SUPABASE_KEY")
 SB_BUCKET_PATH = "recipes/"
 
+STORAGES = {
+    'default': {
+        'BACKEND': 'cookTogether.storage.SupabaseStorage'
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
 if os.getenv("DJANGO_ENV") == "prod":
     # SECURITY WARNING: don't run with debug turned on in production!
     DEBUG = False
@@ -76,6 +85,8 @@ else:
 
     SECRET_KEY = 'django-insecure-0qy6@*4&oqj(5z_o%ovxp^$n&=a(jf0dy7fir_81sr6h3dlxko'
 
+    SB_BUCKET_NAME = "recipes_dev"
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -83,11 +94,9 @@ else:
         }
     }
 
-    SB_BUCKET_NAME = "recipes_dev"
-
+    MEDIA_URL = f"{SB_URL}/storage/v1/object/public/{SB_BUCKET_NAME}/{SB_BUCKET_PATH}"
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
