@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import Recipe
 
-
 class IngredientSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
     quantity = serializers.FloatField()
@@ -15,11 +14,11 @@ class IngredientSerializer(serializers.Serializer):
 class RecipeSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.nickname')
     ingredients = IngredientSerializer(many=True)
-    #category = CategorySerializer()
+    # category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
     class Meta:
         model = Recipe
-        #fields = ['id', 'user', 'title', 'ingredients', 'text_area', 'image_url', 'category']
-        fields = ['id', 'user', 'title', 'ingredients', 'text_area', 'image_url']
+        # fields = ['id', 'user', 'title', 'ingredients', 'text_area', 'image', 'category']
+        fields = ['id', 'user', 'title', 'ingredients', 'text_area', 'image']
 
     # Validar que os ingredientes sigam o padrão esperado
     def validate_ingredients(self, value):
@@ -41,7 +40,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('ingredients', None)
         instance.title = validated_data.get('title', instance.title)
         instance.text_area = validated_data.get('text_area', instance.text_area)
-        instance.image_url = validated_data.get('image_url', instance.image_url)
+        #instance.image_url = validated_data.get('image_url', instance.image_url)
+        instance.image = validated_data.get('image', instance.image_url)
         # instance.category = validated_data.get('category', instance.category)
 
         if ingredients_data is not None:
