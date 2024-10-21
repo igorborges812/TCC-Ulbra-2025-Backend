@@ -12,14 +12,28 @@ Backend do projeto CookTogether. Feito em Django.
 
 ## Desenvolvimento local
 
-Para realizar o desenvolvimento local, é necessário configurar a variável de ambiente `DJANGO_ENV` para o valor `dev`, através do comando:
-- Linux: `export DJANGO_ENV=dev`
-- Windows: `set DJANGO_ENV=dev`
-- Ou então crie um arquivo .env na pasta raiz, contendo `DJANGO_ENV=dev`
+Para realizar o desenvolvimento local, é necessário:
+1. Criar um ambiente virtual (virtual env) onde serão instalados as dependências do projeto. Para isto, siga os passos abaixo, executando os comandos no terminal:
+    1. Na pasta raiz do projeto clonado, execute o comando abaixo no para criar uma pasta de ambiente chamada `venv`:
+        - `python -m venv venv`
+    2. Ainda na pasta raiz, execute o comando abaixo para ativar o ambiente virtual:
+        - Linux/Mac: `source venv/bin/activate`
+        - Windows: `venv\Scripts\activate`
 
-Quando DJANGO_ENV for igual a dev, será utilizado o ambiente de desenvolvimento, ou seja:
-- Será gerado e utilizado um banco sqlite3 local, presente na pasta raiz do projeto
-- Imagens de receitas criadas serão guardadas no bucket `recipes_dev` do supabase.
+2. Com o ambiente ativado, execute o comando `pip install -r requirements.txt` na pasta raiz do projeto para instalar as depêndecias.
+
+3. Configure a variável de ambiente `DJANGO_ENV` para o valor `dev`, através do comando:
+   - Linux: `export DJANGO_ENV=dev`
+   - Windows: `set DJANGO_ENV=dev`
+   - Ou então crie um arquivo .env na pasta raiz, contendo `DJANGO_ENV=dev`
+
+   Quando `DJANGO_ENV` for igual a `dev`, será utilizado o ambiente de desenvolvimento, ou seja:
+   - Será gerado e utilizado um banco sqlite3 local, presente na pasta raiz do projeto
+   - Imagens de receitas criadas serão guardadas no bucket `recipes_dev` do supabase.
+
+4. Execute as migrações necessárias do banco de dados, com o comando `python manage.py migrate`
+
+5. Execute o servidor de desenvolvimento com o comando `python manage.py runserver`
 
 ## CI/CD
 Foi implementada uma esteira CI/CD para enviar o código presente na main para um servidor rodando na nuvem Oracle. A esteira é ativada a partir de qualquer commit ou merge de PR na `main` (apenas abrir um PR não ativa a esteira).
