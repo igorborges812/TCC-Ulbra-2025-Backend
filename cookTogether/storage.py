@@ -25,7 +25,7 @@ class SupabaseStorage(Storage):
         )
 
         if not response.is_success:
-            return Response({"error": "Falha ao enviar arquivo para armazenamento remoto."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"detail": "Falha ao enviar arquivo para armazenamento remoto."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return response.json()["Key"]  # name/path of the file
 

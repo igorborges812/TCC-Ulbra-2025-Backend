@@ -3,8 +3,8 @@ import string, random
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.conf import settings
-from .models import Recipe
-from .serializers import RecipeSerializer
+from .models import Recipe, Category
+from .serializers import RecipeSerializer, CategorySerializer
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
@@ -108,7 +108,7 @@ class GetRecipeByNameView(generics.ListAPIView):
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            return Response({"error": "Não foram encontradas receitas que contém o nome utilizado."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "Não foram encontradas receitas que contém o nome utilizado."}, status=status.HTTP_404_NOT_FOUND)
 
 class RecipeUpdateView(generics.UpdateAPIView):
     queryset = Recipe.objects.all()
@@ -139,3 +139,21 @@ class RecipeUpdateView(generics.UpdateAPIView):
     )
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
+
+
+class GetCategoryView(generics.ListAPIView):
+    serializer_class = CategorySerializer
+    permission_classes = (AllowAny,)
+    queryset = Category.objects.all()
+
+    @swagger_auto_schema(
+    responses={201: openapi.Response(
+                description="Lista de categorias",
+                schema=CategorySerializer
+            )},
+    operation_description="Rota que lista as categorias cadastradas na tabela auxiliar",
+    operation_summary="Lista as categorias existentes",
+    tags=["Receitas"]
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
