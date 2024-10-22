@@ -50,6 +50,7 @@ Exemplo:
 ```json
 {
   "title": "Minha receita de exemplo",
+  "category": 1
   "ingredients": [
     {
       "name": "Água",
@@ -68,6 +69,8 @@ Exemplo de retorno da requisição acima:
 ```json
 {
     "id": 1,
+    "category": 1,
+    "category_name": "Bolos",
     "user": "[Nome do usuário que criou a receita aqui]",
     "title": "Minha receita de exemplo",
     "ingredients": [
@@ -86,7 +89,7 @@ Caso queira criar uma receita sem imagem, basta não passar o campo `image_base6
 ```json
 {
     "id": 1,
-    "user": "[Nome do usuário que criou a receita aqui]",
+    "category": 1,
     "title": "Minha receita de exemplo",
     "ingredients": [
         {
