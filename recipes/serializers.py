@@ -1,5 +1,9 @@
+import json
+
 from rest_framework import serializers
-from .models import Recipe, Category
+
+from .models import Category, Recipe
+
 
 class IngredientSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
@@ -13,38 +17,62 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.nickname')
-    ingredients = IngredientSerializer(many=True)
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
     category_name = serializers.CharField(source='category.name', read_only=True)
+    ingredients = serializers.SerializerMethodField()
+
     class Meta:
         model = Recipe
         fields = ['id', 'user', 'title', 'ingredients', 'text_area', 'image', 'category', 'category_name']
 
-    # Validar que os ingredientes sigam o padrão esperado
-    def validate_ingredients(self, value):
-        if not isinstance(value, list):
-            raise serializers.ValidationError("Ingredientes devem ser passados como uma lista de objetos")
+    def get_ingredients(self, obj):
+        
+        if isinstance(obj.ingredients, str):
+            ingredients_data = json.loads(obj.ingredients)
+        else:
+            ingredients_data = obj.ingredients
+        
+        if isinstance(ingredients_data, dict):
+            ingredients_data = [ingredients_data]
+        
+        serializer = IngredientSerializer(ingredients_data, many=True)
+        return serializer.data
 
-        for ingredient in value:
+    def to_internal_value(self, data):
+        ingredients_data = data.get('ingredients')
+        
+        if ingredients_data is None:
+            raise serializers.ValidationError({'ingredients': 'This field is required.'})
+        
+        if not isinstance(ingredients_data, list):
+            raise serializers.ValidationError({'ingredients': 'Must be a list of ingredients.'})
+        
+        for ingredient in ingredients_data:
             if not all(key in ingredient for key in ('name', 'quantity', 'unit')):
-                raise serializers.ValidationError("Cada ingrediente deve ter nome, quantidade e unidade")
-        return value
+                raise serializers.ValidationError({'ingredients': 'Each ingredient must have name, quantity, and unit.'})
+            
+        data_copy = data.copy()
+        data_copy.pop('ingredients')
+        ret = super().to_internal_value(data_copy)
+        ret['ingredients'] = ingredients_data
+        return ret
 
     def create(self, validated_data):
-        user = self.context['request'].user
-        recipe = Recipe.objects.create(user=user, **validated_data)
+        ingredients_data = validated_data.pop('ingredients')
+        if isinstance(ingredients_data, dict):
+            ingredients_data = [ingredients_data]
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.ingredients = ingredients_data
         recipe.save()
         return recipe
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop('ingredients', None)
-        instance.title = validated_data.get('title', instance.title)
-        instance.text_area = validated_data.get('text_area', instance.text_area)
-        instance.image = validated_data.get('image', instance.image_url)
-        instance.category = validated_data.get('category', instance.category)
-
         if ingredients_data is not None:
+            if isinstance(ingredients_data, dict):
+                ingredients_data = [ingredients_data]
             instance.ingredients = ingredients_data
-
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         instance.save()
         return instance
