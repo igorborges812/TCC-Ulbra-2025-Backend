@@ -19,24 +19,11 @@ class RecipeSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.nickname')
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
     category_name = serializers.CharField(source='category.name', read_only=True)
-    ingredients = serializers.SerializerMethodField()
+    ingredients = IngredientSerializer(many=True)
 
     class Meta:
         model = Recipe
         fields = ['id', 'user', 'title', 'ingredients', 'text_area', 'image', 'category', 'category_name']
-
-    def get_ingredients(self, obj):
-        
-        if isinstance(obj.ingredients, str):
-            ingredients_data = json.loads(obj.ingredients)
-        else:
-            ingredients_data = obj.ingredients
-        
-        if isinstance(ingredients_data, dict):
-            ingredients_data = [ingredients_data]
-        
-        serializer = IngredientSerializer(ingredients_data, many=True)
-        return serializer.data
 
     def to_internal_value(self, data):
         ingredients_data = data.get('ingredients')

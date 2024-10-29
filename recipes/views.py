@@ -33,14 +33,6 @@ class RegisterRecipeView(generics.CreateAPIView):
     serializer_class = RecipeSerializer
 
     @swagger_auto_schema(
-        request_body=RecipeSerializer,
-        responses={
-            201: openapi.Response(
-                description="Objeto contendo dados da receita criada",
-                schema=RecipeSerializer()
-            ),
-            400: "Erro de validação - Receita não criada",
-        },
         operation_description="Rota para registro de uma nova receita",
         operation_summary="Cria uma receita",
         tags=["Receitas"]
@@ -70,18 +62,6 @@ class GetRecipesView(generics.ListAPIView):
     serializer_class = RecipeSerializer
 
     @swagger_auto_schema(
-        responses={
-            200: openapi.Response(
-                description="Lista de receitas salvas",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_ARRAY,
-                    items=openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        ref='#/components/schemas/RecipeSerializer'
-                    )
-                )
-            ),
-        },
         operation_description="Rota que retorna lista com todas as receitas existentes",
         operation_summary="Lista todas as receitas",
         tags=["Receitas"]
@@ -97,13 +77,6 @@ class GetRecipeByIdView(generics.RetrieveAPIView):
     lookup_field = 'id'
 
     @swagger_auto_schema(
-        responses={
-            200: openapi.Response(
-                description="Objeto JSON da receita encontrada com base no ID passado",
-                schema=RecipeSerializer()
-            ),
-            404: "Receita não encontrada para o ID fornecido"
-        },
         operation_description="Rota que retorna um objeto JSON de uma receita que tenha o mesmo ID que foi passado na requisição",
         operation_summary="Retorna uma receita com base no ID",
         tags=["Receitas"]
@@ -123,19 +96,6 @@ class GetRecipeByNameView(generics.ListAPIView):
                 type=openapi.TYPE_STRING, required=True
             )
         ],
-        responses={
-            200: openapi.Response(
-                description="Lista de receitas que passaram pelo filtro de nome",
-                schema=openapi.Schema(
-                    type=openapi.TYPE_ARRAY,
-                    items=openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        ref='#/components/schemas/RecipeSerializer'
-                    )
-                )
-            ),
-            404: "Nenhuma receita encontrada que contenha o nome utilizado"
-        },
         operation_description="Rota que retorna lista de receitas que passaram pelo filtro de nome",
         operation_summary="Buscar receitas pelo título",
         tags=["Receitas"]
@@ -156,14 +116,6 @@ class RecipeUpdateView(generics.UpdateAPIView):
     lookup_field = 'id'
 
     @swagger_auto_schema(
-        request_body=RecipeSerializer,
-        responses={
-            200: openapi.Response(
-                description="Receita atualizada",
-                schema=RecipeSerializer()
-            ),
-            400: "Erro de validação - Receita não atualizada"
-        },
         operation_description="Rota que permite a atualização dos dados de uma receita pelo ID através do PUT",
         operation_summary="Atualiza uma receita",
         tags=["Receitas"]
@@ -172,14 +124,6 @@ class RecipeUpdateView(generics.UpdateAPIView):
         return super().update(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        request_body=RecipeSerializer,
-        responses={
-            200: openapi.Response(
-                description="Receita atualizada parcialmente",
-                schema=RecipeSerializer()
-            ),
-            400: "Erro de validação - Receita não atualizada"
-        },
         operation_description="Rota que permite a atualização parcial dos dados de uma receita pelo ID através do PATCH",
         operation_summary="Atualiza parcialmente uma receita",
         tags=["Receitas"]
