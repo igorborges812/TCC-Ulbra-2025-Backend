@@ -36,13 +36,13 @@ if os.getenv("DJANGO_ENV") == "prod":
     # SECURITY WARNING: don't run with debug turned on in production!
     DEBUG = False
 
-    ALLOWED_HOSTS = ['cooktogether.duckdns.org']
+    ALLOWED_HOSTS = [f'{os.getenv("DOMAIN")}']
 
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = f'{os.getenv("DJANGO_SECRET_KEY")}'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    CSRF_TRUSTED_ORIGINS = ['https://cooktogether.duckdns.org']
+    CSRF_TRUSTED_ORIGINS = [f'{os.getenv("DOMAIN")}']
 
     # Protects against MIME type sniffing attacks by enabling the header X-Content-Type-Options: nosniff
     SECURE_CONTENT_TYPE_NOSNIFF = True

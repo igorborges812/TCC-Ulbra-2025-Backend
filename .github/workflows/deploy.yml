@@ -25,6 +25,7 @@ jobs:
           DATABASE_SCHEMA=${{ secrets.DATABASE_SCHEMA }}
           DJANGO_ENV=prod
           DJANGO_SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}'
+          DOMAIN='${{ secrets.DOMAIN }}'
           EOF
 
       - name: Deploy via ssh
@@ -38,14 +39,21 @@ jobs:
           EXCLUDE: ".git/"
           SCRIPT_AFTER_REQUIRED: true
           SCRIPT_AFTER: |
-            cd ${{ secrets.VM_REMOTE_TARGET_FOLDER }}
+            subst_domain() {
+              DOMAIN='${{ secrets.DOMAIN }}'; export DOMAIN
+              envsubst '$DOMAIN' < ./deploy/nginx.conf > ./deploy/tmp.conf && mv ./deploy/tmp.conf ./deploy/nginx.conf
+              envsubst '$DOMAIN' < ./deploy/nginx-initiate.conf > ./deploy/tmp.conf && mv ./deploy/tmp.conf ./deploy/nginx-initiate.conf
+            }
+            cd ${{ secrets.VM_REMOTE_TARGET_FOLDER }} || exit
             if [ ! -e ./data/finished-cert-bootstrap ]; then
                 echo "##### INICIANDO BOOTSTRAP DE CERTIFICADO #####"
+                subst_domain
                 chmod +x ./deploy/cert-bootstrap.sh
-                sudo ./deploy/cert-bootstrap.sh cooktogether.duckdns.org
+                sudo ./deploy/cert-bootstrap.sh ${{ secrets.DOMAIN }}
                 sleep 5
                 docker compose up --build --force-recreate -d backend nginx
             else
+                subst_domain
                 docker compose down && \
                 docker compose up --build --force-recreate -d backend nginx && \
                 docker image prune -f
