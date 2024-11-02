@@ -40,6 +40,7 @@ jobs:
           SCRIPT_AFTER_REQUIRED: true
           SCRIPT_AFTER: |
             subst_domain() {
+              echo "### Realizando substituição de variáveis... ###"
               DOMAIN='${{ secrets.DOMAIN }}'; export DOMAIN
               envsubst '$DOMAIN' < ./deploy/nginx.conf > ./deploy/tmp.conf && mv ./deploy/tmp.conf ./deploy/nginx.conf
               envsubst '$DOMAIN' < ./deploy/nginx-initiate.conf > ./deploy/tmp.conf && mv ./deploy/tmp.conf ./deploy/nginx-initiate.conf
