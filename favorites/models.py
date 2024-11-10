@@ -1,9 +1,10 @@
 from django.db import models
-from django.conf import settings
+from recipes.models import Recipe
+from users.models import CustomUser
 
 class Favorite(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favorites')
-    recipe_id = models.UUIDField()  # ID da receita favorita
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    recipe_id = models.ForeignKey(Recipe, blank=False, on_delete=models.CASCADE, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

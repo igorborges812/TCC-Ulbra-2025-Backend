@@ -108,6 +108,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'users',
     'recipes',
+    'favorites',
 ]
 
 REST_FRAMEWORK = {

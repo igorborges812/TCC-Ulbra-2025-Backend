@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import CustomUser, Favorite
+from .models import Favorite
 
 admin.site.register(Favorite)
