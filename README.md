@@ -3,12 +3,18 @@ Backend do projeto CookTogether. Feito em Django.
 
 ## Endpoints públicos do projeto
 - Base URL: `cooktogether.duckdns.org`
-- API base URL: `cooktogether.duckdns.org/api`
-  - Exemplo: `cooktogether.duckdns.org/api/recipes/recipe`
+- API base URL: `cooktogether.duckdns.org/api/`
+  - Exemplo: `cooktogether.duckdns.org/api/recipes/list/`
 - Swagger: `cooktogether.duckdns.org/swagger`
 - Painel admin: `cooktogether.duckdns.org/admin`
 
 > As credenciais de login do painel de admin do endpoint público se encontram no card `[CT-04 OPS] Realizar deployment do código no servidor Oracle` no Trello.
+
+> **OBS**: Os endpoints da API precisam terminar com "/". Ex:
+> 
+>Errado: https://cooktogether.duckdns.org/api/recipes/list
+> 
+>Correto: https://cooktogether.duckdns.org/api/recipes/list/
 
 ## Desenvolvimento local
 
@@ -44,7 +50,7 @@ Foi implementada uma esteira CI/CD para enviar o código presente na main para u
 Para a utilização de certos endpoints, é necessário estar autenticado. A autenticação é feita passando um token (Bearer Token) na requisição, sendo este token obtido ao realizar login no endpoint de login (consultar Swagger).
 
 ## Criando receitas com e sem imagens
-O endpoint `/api/recipes/recipe/create/` é o endpoint que aceita requisições POST para criação de receitas. Entretanto, é importante se atentar que é para a criação de receitas contendo uma imagem, é necessário passar o campo `image` contendo uma string base64 de uma imagem que foi previamente codificada.
+O endpoint `/api/recipes/create/` é o endpoint que aceita requisições POST para criação de receitas. Entretanto, é importante se atentar que é para a criação de receitas contendo uma imagem, é necessário passar o campo `image` contendo uma string base64 de uma imagem que foi previamente codificada.
 
 Exemplo:
 ```json
