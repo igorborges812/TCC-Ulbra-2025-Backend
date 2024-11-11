@@ -1,5 +1,3 @@
-import json
-
 from rest_framework import serializers
 
 from .models import Category, Recipe
@@ -25,41 +23,34 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ['id', 'user', 'title', 'ingredients', 'text_area', 'image', 'category', 'category_name']
 
-    def to_internal_value(self, data):
-        ingredients_data = data.get('ingredients')
-        
-        if ingredients_data is None:
-            raise serializers.ValidationError({'ingredients': 'This field is required.'})
-        
-        if not isinstance(ingredients_data, list):
-            raise serializers.ValidationError({'ingredients': 'Must be a list of ingredients.'})
-        
-        for ingredient in ingredients_data:
-            if not all(key in ingredient for key in ('name', 'quantity', 'unit')):
-                raise serializers.ValidationError({'ingredients': 'Each ingredient must have name, quantity, and unit.'})
-            
-        data_copy = data.copy()
-        data_copy.pop('ingredients')
-        ret = super().to_internal_value(data_copy)
-        ret['ingredients'] = ingredients_data
-        return ret
+    def validate_ingredients(self, value):
+        """
+        Valida o campo 'ingredients' para garantir que seja uma lista de ingredientes válida.
+        """
+        if not isinstance(value, list):
+            raise serializers.ValidationError('Deve ser uma lista de ingredientes.')
 
-    def create(self, validated_data):
-        ingredients_data = validated_data.pop('ingredients')
-        if isinstance(ingredients_data, dict):
-            ingredients_data = [ingredients_data]
-        recipe = Recipe.objects.create(**validated_data)
-        recipe.ingredients = ingredients_data
-        recipe.save()
-        return recipe
+        if len(value) == 0:
+            raise serializers.ValidationError('A lista de ingredientes não pode estar vazia.')
 
-    def update(self, instance, validated_data):
-        ingredients_data = validated_data.pop('ingredients', None)
-        if ingredients_data is not None:
-            if isinstance(ingredients_data, dict):
-                ingredients_data = [ingredients_data]
-            instance.ingredients = ingredients_data
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        return instance
+        for idx, ingredient in enumerate(value):
+            if not isinstance(ingredient, dict):
+                raise serializers.ValidationError(f'Ingrediente na posição {idx} deve ser um objeto.')
+
+            # Verifica se todos os campos necessários estão presentes
+            required_fields = ['name', 'quantity', 'unit']
+            for field in required_fields:
+                if field not in ingredient:
+                    raise serializers.ValidationError(f"O campo '{field}' é obrigatório no ingrediente na posição {idx}.")
+
+            # Valida o tipo de cada campo
+            if not isinstance(ingredient['name'], str) or not ingredient['name'].strip():
+                raise serializers.ValidationError(f"O campo 'name' no ingrediente na posição {idx} deve ser uma string não vazia.")
+
+            if not isinstance(ingredient['quantity'], (int, float)):
+                raise serializers.ValidationError(f"O campo 'quantity' no ingrediente na posição {idx} deve ser um número.")
+
+            if not isinstance(ingredient['unit'], str) or not ingredient['unit'].strip():
+                raise serializers.ValidationError(f"O campo 'unit' no ingrediente na posição {idx} deve ser uma string não vazia.")
+
+        return value

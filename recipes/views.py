@@ -20,14 +20,6 @@ from .serializers import CategorySerializer, RecipeSerializer
 
 
 class RegisterRecipeView(generics.CreateAPIView):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-        self.sb_bucket_name = settings.SB_BUCKET_NAME
-        self.sb_bucket_path = settings.SB_BUCKET_PATH
-        self.sb_url = settings.SB_URL
-        self.sb_key = settings.SB_KEY
-
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = RecipeSerializer
@@ -39,21 +31,23 @@ class RegisterRecipeView(generics.CreateAPIView):
     )
     @transaction.atomic
     def post(self, request, *args, **kwargs):
-        image_base64 = request.data.get('image_base64')
+        data = request.data.copy()
+        image_base64 = data.pop('image_base64', None)
 
         if image_base64:
             try:
                 image_data = ContentFile(
                     base64.b64decode(image_base64),
-                    name=f"{''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=30))}.jpg"
+                    name=f"{''.join(random.choices(string.ascii_letters + string.digits, k=30))}.jpg"
                 )
-
-                # Add the decoded image data to the request data
-                request.data['image'] = image_data
+                data['image'] = image_data
             except Exception as e:
-                raise ValidationError(f"Failed to decode base64 image: {str(e)}")
+                raise ValidationError(f"Falha ao decodificar a imagem base64: {str(e)}")
 
-        return super().post(request, *args, **kwargs)
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class GetRecipesView(generics.ListAPIView):
