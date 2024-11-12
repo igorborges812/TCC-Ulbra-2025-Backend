@@ -176,7 +176,7 @@ class GetRecipeByCategoryView(generics.ListAPIView):
 
 
 class SeedCategoriesAndRecipesView(APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     @swagger_auto_schema(
         operation_description="Cria 5 categorias e 10 receitas para cada categoria.",
@@ -208,7 +208,7 @@ class SeedCategoriesAndRecipesView(APIView):
             category, created = Category.objects.get_or_create(name=category_name)
             categories.append(category)
 
-        user = CustomUser.objects.first()
+        user = self.context['request'].user
         if not user:
             return Response({"detail": "Nenhum usuário encontrado para associar às receitas."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -223,7 +223,7 @@ class SeedCategoriesAndRecipesView(APIView):
                     user=user,
                     title=recipe_title,
                     ingredients=ingredients,
-                    text_area=f'Texto da receita {j+1} da {category.name}',
+                    text_area=[f'Texto da receita {j+1} da {category.name}'],
                     category=category
                 )
 
