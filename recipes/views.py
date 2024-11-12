@@ -208,7 +208,7 @@ class SeedCategoriesAndRecipesView(APIView):
             category, created = Category.objects.get_or_create(name=category_name)
             categories.append(category)
 
-        user = self.context['request'].user
+        user = self.request.user
         if not user:
             return Response({"detail": "Nenhum usuário encontrado para associar às receitas."}, status=status.HTTP_400_BAD_REQUEST)
 
