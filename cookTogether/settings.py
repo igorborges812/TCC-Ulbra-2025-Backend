@@ -42,7 +42,7 @@ if os.getenv("DJANGO_ENV") == "prod":
     SECRET_KEY = f'{os.getenv("DJANGO_SECRET_KEY")}'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    CSRF_TRUSTED_ORIGINS = [f'{os.getenv("DOMAIN")}']
+    CSRF_TRUSTED_ORIGINS = [f'https://{os.getenv("DOMAIN")}']
 
     # Protects against MIME type sniffing attacks by enabling the header X-Content-Type-Options: nosniff
     SECURE_CONTENT_TYPE_NOSNIFF = True
