@@ -12,9 +12,6 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'user', 'category', 'display_ingredients')
     search_fields = ('id', 'title', 'user__nickname', 'category__name')
     list_filter = ('category', 'user')
-    # list_display = ('id', 'title', 'user', 'display_ingredients')
-    # search_fields = ('id', 'title', 'user__nickname')
-    # list_filter = ('user',)
     ordering = ('id',)
 
     def display_ingredients(self, obj):
