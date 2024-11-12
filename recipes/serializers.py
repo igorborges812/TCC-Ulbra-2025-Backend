@@ -18,6 +18,9 @@ class RecipeSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
     category_name = serializers.CharField(source='category.name', read_only=True)
     ingredients = IngredientSerializer(many=True)
+    text_area = serializers.ListField(
+        child=serializers.CharField(max_length=1000)
+    )
 
     class Meta:
         model = Recipe

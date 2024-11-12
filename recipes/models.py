@@ -1,4 +1,5 @@
 from django.db import models
+
 from users.models import CustomUser
 
 # Create your models here.
@@ -13,7 +14,7 @@ class Recipe(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     ingredients = models.JSONField(null=False)
-    text_area = models.TextField(blank=False, null=False)
+    text_area = models.JSONField(blank=False, null=False)
     image = models.ImageField(null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
 
