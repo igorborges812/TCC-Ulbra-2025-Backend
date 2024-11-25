@@ -12,6 +12,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.contrib.auth.models import AnonymousUser
 
 from users.models import CustomUser
 
@@ -21,7 +22,7 @@ from .serializers import CategorySerializer, RecipeSerializer
 
 class RegisterRecipeView(generics.CreateAPIView):
     queryset = Recipe.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     serializer_class = RecipeSerializer
 
     @swagger_auto_schema(
@@ -44,9 +45,15 @@ class RegisterRecipeView(generics.CreateAPIView):
             except Exception as e:
                 raise ValidationError(f"Falha ao decodificar a imagem base64: {str(e)}")
 
+        user = request.user
+        if isinstance(user, AnonymousUser):
+            user, created = CustomUser.objects.get_or_create(
+                                        email='user@generic.com',
+                                        nickname='GenericUser')
+
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)
+        serializer.save(user=user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -106,7 +113,7 @@ class GetRecipeByNameView(generics.ListAPIView):
 class RecipeUpdateView(generics.UpdateAPIView):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     lookup_field = 'id'
 
     @swagger_auto_schema(
