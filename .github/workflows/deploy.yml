@@ -1,6 +1,7 @@
 name: Deploy to VM and Build
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
