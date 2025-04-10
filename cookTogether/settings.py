@@ -19,6 +19,8 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DEFAULT_CHARSET = 'utf-8'
+
 SB_URL: str = os.environ.get("SUPABASE_URL")
 SB_KEY: str = os.environ.get("SUPABASE_KEY")
 SB_BUCKET_PATH = "recipes/"
@@ -34,9 +36,9 @@ STORAGES = {
 
 if os.getenv("DJANGO_ENV") == "prod":
     # SECURITY WARNING: don't run with debug turned on in production!
-    DEBUG = False
+    DEBUG = True
 
-    ALLOWED_HOSTS = [f'{os.getenv("DOMAIN")}']
+    ALLOWED_HOSTS = ['*']
 
     # SECURITY WARNING: keep the secret key used in production secret!
     SECRET_KEY = f'{os.getenv("DJANGO_SECRET_KEY")}'
@@ -81,7 +83,7 @@ if os.getenv("DJANGO_ENV") == "prod":
 else:
     DEBUG = True
 
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', 'localhost']
 
     SECRET_KEY = 'django-insecure-0qy6@*4&oqj(5z_o%ovxp^$n&=a(jf0dy7fir_81sr6h3dlxko'
 

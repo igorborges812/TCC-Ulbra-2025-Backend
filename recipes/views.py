@@ -147,8 +147,7 @@ class GetCategoryView(generics.ListAPIView):
         return super().get(request, *args, **kwargs)
 
 
-class GetRecipeByCategoryView(generics.ListAPIView):
-    serializer_class = RecipeSerializer
+class GetRecipeByCategoryView(APIView):
     permission_classes = (AllowAny,)
 
     @swagger_auto_schema(
@@ -167,19 +166,18 @@ class GetRecipeByCategoryView(generics.ListAPIView):
         tags=["Receitas"]
     )
     def get(self, request, category_id, *args, **kwargs):
-        # Busca receitas pela categoria
         queryset = Recipe.objects.filter(category_id=category_id)
 
-        if not queryset.exists():
-            return Response({"detail": "Nenhuma receita encontrada para essa categoria."}, status=status.HTTP_404_NOT_FOUND)
-
-        # Caso seja fornecido um título, filtra dentro das receitas dessa categoria
         title = request.query_params.get('title')
         if title:
             queryset = queryset.filter(title__icontains=title)
 
-        serializer = self.get_serializer(queryset, many=True)
+        if not queryset.exists():
+            return Response({"detail": "Nenhuma receita encontrada para essa categoria."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = RecipeSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 class SeedCategoriesAndRecipesView(APIView):

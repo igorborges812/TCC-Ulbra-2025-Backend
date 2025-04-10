@@ -17,43 +17,27 @@ class RecipeSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.nickname')
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
     category_name = serializers.CharField(source='category.name', read_only=True)
-    ingredients = IngredientSerializer(many=True)
-    text_area = serializers.ListField(
-        child=serializers.CharField(max_length=1000)
-    )
 
     class Meta:
         model = Recipe
         fields = ['id', 'user', 'title', 'ingredients', 'text_area', 'image', 'category', 'category_name']
 
-    def validate_ingredients(self, value):
-        """
-        Valida o campo 'ingredients' para garantir que seja uma lista de ingredientes válida.
-        """
-        if not isinstance(value, list):
-            raise serializers.ValidationError('Deve ser uma lista de ingredientes.')
+    def to_representation(self, instance):
+        # Começa com a representação padrão
+        representation = super().to_representation(instance)
 
-        if len(value) == 0:
-            raise serializers.ValidationError('A lista de ingredientes não pode estar vazia.')
+        import json
 
-        for idx, ingredient in enumerate(value):
-            if not isinstance(ingredient, dict):
-                raise serializers.ValidationError(f'Ingrediente na posição {idx} deve ser um objeto.')
+        # Ingredientes: tenta decodificar a string JSON salva no banco
+        try:
+            representation['ingredients'] = json.loads(instance.ingredients)
+        except Exception:
+            representation['ingredients'] = []
 
-            # Verifica se todos os campos necessários estão presentes
-            required_fields = ['name', 'quantity', 'unit']
-            for field in required_fields:
-                if field not in ingredient:
-                    raise serializers.ValidationError(f"O campo '{field}' é obrigatório no ingrediente na posição {idx}.")
+        # Text area: idem
+        try:
+            representation['text_area'] = json.loads(instance.text_area)
+        except Exception:
+            representation['text_area'] = []
 
-            # Valida o tipo de cada campo
-            if not isinstance(ingredient['name'], str) or not ingredient['name'].strip():
-                raise serializers.ValidationError(f"O campo 'name' no ingrediente na posição {idx} deve ser uma string não vazia.")
-
-            if not isinstance(ingredient['quantity'], (int, float)):
-                raise serializers.ValidationError(f"O campo 'quantity' no ingrediente na posição {idx} deve ser um número.")
-
-            if not isinstance(ingredient['unit'], str) or not ingredient['unit'].strip():
-                raise serializers.ValidationError(f"O campo 'unit' no ingrediente na posição {idx} deve ser uma string não vazia.")
-
-        return value
+        return representation

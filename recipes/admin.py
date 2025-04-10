@@ -1,3 +1,4 @@
+import json
 from django.contrib import admin
 from .models import Recipe, Category
 
@@ -15,6 +16,10 @@ class RecipeAdmin(admin.ModelAdmin):
     ordering = ('id',)
 
     def display_ingredients(self, obj):
-        return ", ".join([f"{ing['name']} ({ing['quantity']} {ing['unit']})" for ing in obj.ingredients])
+        try:
+            ingredients = json.loads(obj.ingredients)
+            return ", ".join([f"{ing['name']} ({ing['quantity']} {ing['unit']})" for ing in ingredients])
+        except Exception as e:
+            return f"Erro: {e}"
 
-    display_ingredients.short_description = 'ingredientes'
+    display_ingredients.short_description = 'Ingredientes'
