@@ -22,7 +22,7 @@ from .serializers import CategorySerializer, RecipeSerializer
 
 class RegisterRecipeView(generics.CreateAPIView):
     queryset = Recipe.objects.all()
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = RecipeSerializer
 
     @swagger_auto_schema(
@@ -46,10 +46,6 @@ class RegisterRecipeView(generics.CreateAPIView):
                 raise ValidationError(f"Falha ao decodificar a imagem base64: {str(e)}")
 
         user = request.user
-        if isinstance(user, AnonymousUser):
-            user, created = CustomUser.objects.get_or_create(
-                                        email='user@generic.com',
-                                        nickname='GenericUser')
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
