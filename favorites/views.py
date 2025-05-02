@@ -2,6 +2,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
 from .models import Favorite
 from .serializers import FavoriteSerializer
 
@@ -16,11 +17,9 @@ class FavoriteListView(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         queryset = Favorite.objects.filter(user=self.request.user)
-        if queryset.exists():
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response({"detail": "Não foram encontradas receitas favoritas deste usuário."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class FavoriteCreateView(generics.CreateAPIView):
     serializer_class = FavoriteSerializer
@@ -41,8 +40,7 @@ class FavoriteDeleteView(generics.DestroyAPIView):
     lookup_field = 'id'
 
     def get_queryset(self):
-        user = self.request.user
-        return Favorite.objects.filter(user=user)
+        return Favorite.objects.filter(user=self.request.user)
 
     @swagger_auto_schema(
         operation_description="Rota para remoção de uma receita dos favoritos de um usuário",
