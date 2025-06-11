@@ -1,5 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenVerifyView
+from .views import get_my_recipes
 
 from .views import (
     GetCategoryView, GetRecipeByCategoryView,
@@ -18,4 +19,5 @@ urlpatterns = [
     path('category/<int:category_id>/', GetRecipeByCategoryView.as_view(), name='get-recipe-by-category'),
     path('category/create/', CategoryCreateView.as_view(), name='create-category'),  # <- nova rota
     path('seed/', SeedCategoriesAndRecipesView.as_view(), name='seed-categories-recipes'),
+    path('my_recipes/', get_my_recipes, name='get-my-recipes'),
 ]

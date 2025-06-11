@@ -1,10 +1,11 @@
 from rest_framework import serializers
+from recipes.serializers import RecipeSerializer
 from .models import Favorite
-from rest_framework.response import Response
-from rest_framework import status
+
 
 class FavoriteSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.nickname')
+
     class Meta:
         model = Favorite
         fields = ['id', 'user', 'recipe_id', 'created_at']
@@ -12,11 +13,13 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
-        favorite = Favorite.objects.create(**validated_data)
-        favorite.save()
-        return favorite
+        return Favorite.objects.create(**validated_data)
 
-    def destroy(self):
-        instance = self.get_object()
-        self.delete(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+# 🔥 Serializer que retorna os dados completos da receita favoritada
+class FavoriteRecipeSerializer(serializers.ModelSerializer):
+    recipe_id = RecipeSerializer()
+
+    class Meta:
+        model = Favorite
+        fields = ['id', 'recipe_id', 'created_at']

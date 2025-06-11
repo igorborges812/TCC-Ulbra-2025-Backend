@@ -1,24 +1,18 @@
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
 
 from .models import Favorite
-from .serializers import FavoriteSerializer
+from .serializers import FavoriteSerializer, FavoriteRecipeSerializer
+
 
 class FavoriteListView(generics.ListAPIView):
-    serializer_class = FavoriteSerializer
+    serializer_class = FavoriteRecipeSerializer
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_description="Rota que retorna lista com todas as receitas favoritas de um usuário",
-        operation_summary="Lista as receitas favoritas de um usuário",
-        tags=["Favoritos"]
-    )
-    def get(self, request, *args, **kwargs):
-        queryset = Favorite.objects.filter(user=self.request.user)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user)
 
 
 class FavoriteCreateView(generics.CreateAPIView):
@@ -26,11 +20,17 @@ class FavoriteCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_description="Rota para registro de uma receita nos favoritos de um usuário",
-        operation_summary="Adiciona uma receita aos favoritos de um usuário",
+        operation_description="Adiciona uma receita aos favoritos",
+        operation_summary="Adicionar favorito",
         tags=["Favoritos"]
     )
     def post(self, request, *args, **kwargs):
+        recipe_id = request.data.get('recipe_id')
+        if Favorite.objects.filter(user=request.user, recipe_id=recipe_id).exists():
+            return Response(
+                {"detail": "Essa receita já está nos favoritos."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         return super().post(request, *args, **kwargs)
 
 
@@ -41,11 +41,3 @@ class FavoriteDeleteView(generics.DestroyAPIView):
 
     def get_queryset(self):
         return Favorite.objects.filter(user=self.request.user)
-
-    @swagger_auto_schema(
-        operation_description="Rota para remoção de uma receita dos favoritos de um usuário",
-        operation_summary="Remove uma receita dos favoritos de um usuário",
-        tags=["Favoritos"]
-    )
-    def delete(self, request, *args, **kwargs):
-        return super().delete(request, *args, **kwargs)

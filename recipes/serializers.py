@@ -2,15 +2,18 @@ from django.conf import settings
 from rest_framework import serializers
 from .models import Category, Recipe
 
+
 class IngredientSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
     quantity = serializers.FloatField()
     unit = serializers.CharField(max_length=50)
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name']
+
 
 class RecipeSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.nickname')
@@ -34,9 +37,17 @@ class RecipeSerializer(serializers.ModelSerializer):
         ]
 
     def get_image(self, obj):
+        request = self.context.get('request')
         if obj.image:
-            return obj.image.url
-        return settings.MEDIA_URL + 'default_recipe.png'
+            image_url = obj.image.url
+            if request is not None:
+                return request.build_absolute_uri(image_url)
+            else:
+                return image_url
+        if request is not None:
+            return request.build_absolute_uri(settings.MEDIA_URL + 'default_recipe.png')
+        else:
+            return settings.MEDIA_URL + 'default_recipe.png'
 
     def create(self, validated_data):
         user = self.context['request'].user

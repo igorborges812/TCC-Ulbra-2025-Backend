@@ -20,6 +20,8 @@ from users.models import CustomUser
 from .models import Category, Recipe
 from .serializers import CategorySerializer, RecipeSerializer
 from .utils import resize_image  
+from rest_framework.decorators import api_view, permission_classes
+from django.db.models import Q
 
 # ----------------------------
 # CRIAÇÃO DE RECEITA
@@ -61,21 +63,31 @@ class RegisterRecipeView(generics.CreateAPIView):
 
 
 # ----------------------------
-# LISTAGEM GERAL DE RECEITAS
+# LISTAGEM GERAL DE RECEITAS COM FILTROS
 # ----------------------------
 
 class GetRecipesView(generics.ListAPIView):
-    queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (AllowAny,)
 
     @swagger_auto_schema(
-        operation_description="Rota que retorna lista com todas as receitas existentes",
-        operation_summary="Lista todas as receitas",
+        manual_parameters=[
+            openapi.Parameter('search', openapi.IN_QUERY, description="Busca por título, categoria ou ingrediente", type=openapi.TYPE_STRING)
+        ],
+        operation_description="Rota que retorna lista com todas as receitas existentes com possibilidade de filtro",
+        operation_summary="Lista receitas com filtro",
         tags=["Receitas"]
     )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+    def get_queryset(self):
+        queryset = Recipe.objects.all()
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) |
+                Q(category__name__icontains=search) |
+                Q(ingredients__icontains=search)
+            )
+        return queryset
 
 
 # ----------------------------
@@ -244,6 +256,8 @@ class SeedCategoriesAndRecipesView(APIView):
                 )
 
         return Response({"detail": "Seed de categorias e receitas criada com sucesso."}, status=status.HTTP_201_CREATED)
+
+
 # ----------------------------
 # CRIAR NOVA CATEGORIA
 # ----------------------------
@@ -260,3 +274,16 @@ class CategoryCreateView(generics.CreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
+
+
+# ----------------------------
+# MINHAS RECEITAS (NOVA VIEW)
+# ----------------------------
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_my_recipes(request):
+    user = request.user
+    recipes = Recipe.objects.filter(user=user)
+    serializer = RecipeSerializer(recipes, many=True)
+    return Response(serializer.data)
