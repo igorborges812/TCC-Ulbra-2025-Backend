@@ -21,18 +21,17 @@ SUPABASE_BUCKET = "recipes"
 # Produção segura
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ['https://cooktogether-backend.onrender.com/']
-
+CSRF_TRUSTED_ORIGINS = ['https://cooktogether-backend.onrender.com']
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Banco de dados Supabase
+# Banco de dados Supabase com SSL requerido
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -41,13 +40,15 @@ DATABASES = {
         'PASSWORD': os.environ['DATABASE_PASSWORD'],
         'HOST': os.environ['DATABASE_HOST'],
         'PORT': os.environ['DATABASE_PORT'],
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
     }
 }
 
 # Caminhos estáticos e mídia
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
