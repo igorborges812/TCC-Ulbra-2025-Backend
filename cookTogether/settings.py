@@ -8,69 +8,48 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_CHARSET = 'utf-8'
 
-# Comentado Supabase temporariamente
-# SB_URL: str = os.environ.get("SUPABASE_URL")
-# SB_KEY: str = os.environ.get("SUPABASE_KEY")
-# SB_BUCKET_PATH = "recipes/"
+# Ambiente
+DEBUG = False
+ALLOWED_HOSTS = ['cooktogether-backend.onrender.com']
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "sua-chave-secreta-prod")
 
-# STORAGES = {
-#     'default': {
-#         'BACKEND': 'cookTogether.storage.SupabaseStorage'
-#     },
-#     "staticfiles": {
-#         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-#     },
-# }
+# Supabase configs
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://sizovghaygzecxbgvqvb.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_BUCKET = "recipes"
 
-if os.getenv("DJANGO_ENV") == "prod":
-    DEBUG = True
-    ALLOWED_HOSTS = ['*']
-    SECRET_KEY = f'{os.getenv("DJANGO_SECRET_KEY")}'
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    CSRF_TRUSTED_ORIGINS = [f'https://{os.getenv("DOMAIN")}']
+# Produção segura
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = ['https://cooktogether-backend.onrender.com']
 
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
-    X_FRAME_OPTIONS = 'DENY'
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = False
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DATABASE_NAME'),
-            'USER': os.environ.get('DATABASE_USER'),
-            'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
-            'HOST': os.environ.get('DATABASE_HOST'),
-            'PORT': os.environ.get('DATABASE_PORT'),
-            'OPTIONS': {'options': f"-c search_path={os.environ.get('DATABASE_SCHEMA')}"},
-        }
+# Banco de dados Supabase
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DATABASE_NAME', 'postgres'),
+        'USER': os.environ.get('DATABASE_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD', ''),
+        'HOST': os.environ.get('DATABASE_HOST', 'db.sizovghaygzecxbgvqvb.supabase.co'),
+        'PORT': os.environ.get('DATABASE_PORT', '5432'),
     }
+}
 
-    # SB_BUCKET_NAME = "recipes"
-
-else:
-    DEBUG = True
-    ALLOWED_HOSTS = ['10.0.2.2', '127.0.0.1', 'localhost']
-    SECRET_KEY = 'django-insecure-0qy6@*4&oqj(5z_o%ovxp^$n&=a(jf0dy7fir_81sr6h3dlxko'
-
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-
-    # Upload local
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-STATIC_URL = 'static/'
+# Caminhos estáticos e mídia
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -86,14 +65,7 @@ INSTALLED_APPS = [
     'favorites',
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
-}
+AUTH_USER_MODEL = 'users.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -125,26 +97,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cookTogether.wsgi.application'
 
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-AUTH_USER_MODEL = 'users.CustomUser'
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': False,
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),
@@ -161,7 +125,8 @@ SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
 }
 
-import os
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
