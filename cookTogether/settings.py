@@ -11,17 +11,17 @@ DEFAULT_CHARSET = 'utf-8'
 # Ambiente
 DEBUG = False
 ALLOWED_HOSTS = ['cooktogether-backend.onrender.com']
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "sua-chave-secreta-prod")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # Supabase configs
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://sizovghaygzecxbgvqvb.supabase.co")
+SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 SUPABASE_BUCKET = "recipes"
 
 # Produção segura
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ['https://cooktogether-backend.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://cooktogether-backend.onrender.com/']
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
@@ -36,11 +36,11 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DATABASE_NAME', 'postgres'),
-        'USER': os.environ.get('DATABASE_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DATABASE_PASSWORD', ''),
-        'HOST': os.environ.get('DATABASE_HOST', 'db.sizovghaygzecxbgvqvb.supabase.co'),
-        'PORT': os.environ.get('DATABASE_PORT', '5432'),
+        'NAME': os.environ['DATABASE_NAME'],
+        'USER': os.environ['DATABASE_USER'],
+        'PASSWORD': os.environ['DATABASE_PASSWORD'],
+        'HOST': os.environ['DATABASE_HOST'],
+        'PORT': os.environ['DATABASE_PORT'],
     }
 }
 
