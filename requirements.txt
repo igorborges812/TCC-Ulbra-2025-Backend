@@ -53,3 +53,4 @@ websockets==13.1
 yarl==1.13.1
 gunicorn===23.0.0
 psycopg2===2.9.9
+dj-database-url>=1.0
