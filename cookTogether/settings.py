@@ -11,7 +11,7 @@ DEFAULT_CHARSET = 'utf-8'
 
 # Ambiente
 DEBUG = False
-ALLOWED_HOSTS = ['cooktogether-backend.onrender.com']
+ALLOWED_HOSTS = ['tcc-ulbra-2025-backend-production.up.railway.app']
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # Supabase configs
@@ -19,10 +19,10 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 SUPABASE_BUCKET = "recipes"
 
-# Produção segura
+# Segurança em produção
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ['https://cooktogether-backend.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://tcc-ulbra-2025-backend-production.up.railway.app']
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
@@ -32,7 +32,7 @@ SECURE_HSTS_PRELOAD = True
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Banco de dados Supabase com SSL requerido
+# Banco de dados (Supabase com SSL)
 DATABASES = {
     'default': dj_database_url.config(
         default=os.getenv('DATABASE_URL'),
@@ -41,7 +41,7 @@ DATABASES = {
     )
 }
 
-# Caminhos estáticos e mídia
+# Arquivos estáticos e mídia
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'drf_yasg',
+    'corsheaders',  # Adicionado para permitir requisições do app
     'users',
     'recipes',
     'favorites',
@@ -64,6 +65,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'users.CustomUser'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Deve vir antes do CommonMiddleware
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -72,6 +74,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Permitir todas as origens durante os testes com Flutter
+CORS_ALLOW_ALL_ORIGINS = True
+# Se quiser restringir depois, use:
+# CORS_ALLOWED_ORIGINS = ['https://meuappflutter.com']
 
 ROOT_URLCONF = 'cookTogether.urls'
 
