@@ -10,14 +10,13 @@ class UsersConfig(AppConfig):
 
     def ready(self):
         try:
-            # Protegido por variável de ambiente (opcional, remova se não quiser)
             if os.getenv("CREATE_ADMIN", "true") == "true":
                 User = get_user_model()
                 if not User.objects.filter(email="admin@email.com").exists():
                     User.objects.create_superuser(
                         email="admin@email.com",
-                        password="admin123"
+                        password="admin123",
+                        nickname="Admin"
                     )
         except (OperationalError, ProgrammingError):
-            # Evita erro durante migrations ou banco indisponível
             pass
