@@ -9,10 +9,8 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_CHARSET = 'utf-8'
 
-# Ambiente
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-# Aceita domínios do Render + personalizados via .env
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", ".onrender.com,localhost,127.0.0.1").split(",")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
@@ -46,9 +44,10 @@ DATABASES = {
     )
 }
 
-# Arquivos estáticos (coletados com collectstatic)
+# Arquivos estáticos
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # ✅ necessário
 
 # Arquivos de mídia
 MEDIA_URL = '/media/'
@@ -72,8 +71,9 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'users.CustomUser'
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ necessário
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
