@@ -6,11 +6,15 @@ from rest_framework import permissions
 
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import JsonResponse  # 👈 necessário para a rota /status
+from django.http import JsonResponse
 
 # 🔧 Rota de verificação simples
 def health_check(request):
     return JsonResponse({"status": "ok"})
+
+# 🔧 Rota raiz temporária para testar resposta do servidor
+def root_test(request):
+    return JsonResponse({"message": "API online com sucesso 🚀"})
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -27,15 +31,14 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
+   path('', root_test),  # ✅ rota raiz temporária
+   path('status/', health_check),
    path('admin/', admin.site.urls),
    path('api/users/', include('users.urls')),
    path('api/recipes/', include('recipes.urls')),
    path('api/favorites/', include('favorites.urls')),
-
    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-
-   path('status/', health_check),  # ✅ nova rota /status
 ]
 
 if settings.DEBUG:
