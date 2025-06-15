@@ -13,9 +13,8 @@ class UsersConfig(AppConfig):
             # Protegido por variável de ambiente (opcional, remova se não quiser)
             if os.getenv("CREATE_ADMIN", "true") == "true":
                 User = get_user_model()
-                if not User.objects.filter(username="admin").exists():
+                if not User.objects.filter(email="admin@email.com").exists():
                     User.objects.create_superuser(
-                        username="admin",
                         email="admin@email.com",
                         password="admin123"
                     )
