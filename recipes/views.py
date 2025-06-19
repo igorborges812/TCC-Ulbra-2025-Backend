@@ -2,26 +2,22 @@ import base64
 import random
 import string
 
-from django.conf import settings
-from django.core.files.base import ContentFile
 from django.db import transaction
-from django.contrib.auth.models import AnonymousUser
-
 from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view, permission_classes
+from django.db.models import Q
 
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
-from users.models import CustomUser
 from .models import Category, Recipe
 from .serializers import CategorySerializer, RecipeSerializer
-from .utils import resize_image  
-from rest_framework.decorators import api_view, permission_classes
-from django.db.models import Q
+
+SUPABASE_BUCKET_URL = "https://sizovghaygzecxbgvqvb.supabase.co/storage/v1/object/public/receitas"
 
 # ----------------------------
 # CRIAÇÃO DE RECEITA
@@ -45,13 +41,8 @@ class RegisterRecipeView(generics.CreateAPIView):
         if image_base64:
             try:
                 filename = ''.join(random.choices(string.ascii_letters + string.digits, k=30)) + ".jpg"
-                decoded_image = ContentFile(base64.b64decode(image_base64), name=filename)
-
-                # Redimensiona antes de salvar
-                resized_image = resize_image(decoded_image, size=(400, 300))
-                resized_image.name = filename
-                data['image'] = resized_image
-
+                full_url = f"{SUPABASE_BUCKET_URL}/{filename}"
+                data['image'] = full_url
             except Exception as e:
                 raise ValidationError(f"Falha ao processar a imagem base64: {str(e)}")
 
@@ -60,7 +51,6 @@ class RegisterRecipeView(generics.CreateAPIView):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 
 # ----------------------------
 # LISTAGEM GERAL DE RECEITAS COM FILTROS
@@ -89,7 +79,6 @@ class GetRecipesView(generics.ListAPIView):
             )
         return queryset
 
-
 # ----------------------------
 # DETALHE POR ID
 # ----------------------------
@@ -107,7 +96,6 @@ class GetRecipeByIdView(generics.RetrieveAPIView):
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
-
 
 # ----------------------------
 # BUSCA POR TÍTULO
@@ -135,7 +123,6 @@ class GetRecipeByNameView(generics.ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
 # ----------------------------
 # ATUALIZAÇÃO DE RECEITA
 # ----------------------------
@@ -162,7 +149,6 @@ class RecipeUpdateView(generics.UpdateAPIView):
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
-
 # ----------------------------
 # LISTAR CATEGORIAS
 # ----------------------------
@@ -179,7 +165,6 @@ class GetCategoryView(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
-
 
 # ----------------------------
 # RECEITAS POR CATEGORIA
@@ -209,7 +194,6 @@ class GetRecipeByCategoryView(APIView):
         serializer = RecipeSerializer(queryset, many=True)
         return Response(serializer.data)
 
-
 # ----------------------------
 # SEED AUTOMÁTICO
 # ----------------------------
@@ -223,10 +207,6 @@ class SeedCategoriesAndRecipesView(APIView):
     @swagger_auto_schema(
         operation_description="Cria 5 categorias e 10 receitas para cada uma.",
         operation_summary="Seed de categorias e receitas",
-        responses={
-            201: openapi.Response(description="Seed criada com sucesso."),
-            400: openapi.Response(description="Erro ao associar usuário às receitas.")
-        },
         tags=["Seed"]
     )
     def get(self, request, *args, **kwargs):
@@ -257,7 +237,6 @@ class SeedCategoriesAndRecipesView(APIView):
 
         return Response({"detail": "Seed de categorias e receitas criada com sucesso."}, status=status.HTTP_201_CREATED)
 
-
 # ----------------------------
 # CRIAR NOVA CATEGORIA
 # ----------------------------
@@ -274,7 +253,6 @@ class CategoryCreateView(generics.CreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-
 
 # ----------------------------
 # MINHAS RECEITAS (NOVA VIEW)
