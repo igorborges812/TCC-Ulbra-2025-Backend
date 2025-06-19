@@ -13,7 +13,7 @@ class Recipe(models.Model):
     ingredients = models.JSONField(null=False)
     text_area = models.JSONField(blank=False, null=False)
     
-    # Agora o campo armazena apenas a URL pública da imagem
+    # Armazena apenas a URL da imagem vinda do Supabase
     image = models.URLField(max_length=500, null=True, blank=True)
 
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)

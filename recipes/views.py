@@ -2,6 +2,8 @@ import base64
 import random
 import string
 
+import httpx
+
 from django.db import transaction
 from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError
@@ -17,7 +19,29 @@ from drf_yasg.utils import swagger_auto_schema
 from .models import Category, Recipe
 from .serializers import CategorySerializer, RecipeSerializer
 
-SUPABASE_BUCKET_URL = "https://sizovghaygzecxbgvqvb.supabase.co/storage/v1/object/public/receitas"
+SUPABASE_URL = "https://sizovghaygzecxbgvqvb.supabase.co"
+SUPABASE_BUCKET = "receitas"
+SUPABASE_KEY = "SUA_CHAVE_ANON"  # Substitua por sua chave pública do Supabase
+
+
+def upload_image_to_supabase(filename: str, base64_data: str) -> str:
+    binary_data = base64.b64decode(base64_data)
+
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/octet-stream",
+    }
+
+    url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{filename}"
+
+    response = httpx.put(url, headers=headers, content=binary_data)
+
+    if response.status_code != 200:
+        raise Exception(f"Erro ao fazer upload: {response.text}")
+
+    return f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{filename}"
+
 
 # ----------------------------
 # CRIAÇÃO DE RECEITA
@@ -41,10 +65,10 @@ class RegisterRecipeView(generics.CreateAPIView):
         if image_base64:
             try:
                 filename = ''.join(random.choices(string.ascii_letters + string.digits, k=30)) + ".jpg"
-                full_url = f"{SUPABASE_BUCKET_URL}/{filename}"
-                data['image'] = full_url
+                image_url = upload_image_to_supabase(filename, image_base64)
+                data['image'] = image_url
             except Exception as e:
-                raise ValidationError(f"Falha ao processar a imagem base64: {str(e)}")
+                raise ValidationError(f"Erro ao subir imagem para o Supabase: {str(e)}")
 
         serializer = self.get_serializer(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
