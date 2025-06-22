@@ -21,10 +21,14 @@ from .serializers import CategorySerializer, RecipeSerializer
 
 SUPABASE_URL = "https://sizovghaygzecxbgvqvb.supabase.co"
 SUPABASE_BUCKET = "receitas"
-SUPABASE_KEY = "SUA_CHAVE_ANON"  # Substitua por sua chave pública do Supabase
+SUPABASE_KEY = "SUA_CHAVE_ANON"  # Substitua pela sua chave pública do Supabase
 
 
 def upload_image_to_supabase(filename: str, base64_data: str) -> str:
+    # Verifica se veio em formato incorreto
+    if isinstance(base64_data, list):
+        raise ValidationError("A imagem enviada não está codificada corretamente. Esperado base64 string.")
+
     binary_data = base64.b64decode(base64_data)
 
     headers = {
@@ -37,7 +41,7 @@ def upload_image_to_supabase(filename: str, base64_data: str) -> str:
 
     response = httpx.put(url, headers=headers, content=binary_data)
 
-    if response.status_code != 200:
+    if response.status_code not in [200, 201]:
         raise Exception(f"Erro ao fazer upload: {response.text}")
 
     return f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{filename}"
@@ -76,6 +80,7 @@ class RegisterRecipeView(generics.CreateAPIView):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
 # ----------------------------
 # LISTAGEM GERAL DE RECEITAS COM FILTROS
 # ----------------------------
@@ -103,6 +108,7 @@ class GetRecipesView(generics.ListAPIView):
             )
         return queryset
 
+
 # ----------------------------
 # DETALHE POR ID
 # ----------------------------
@@ -120,6 +126,7 @@ class GetRecipeByIdView(generics.RetrieveAPIView):
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
 
 # ----------------------------
 # BUSCA POR TÍTULO
@@ -147,6 +154,7 @@ class GetRecipeByNameView(generics.ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 # ----------------------------
 # ATUALIZAÇÃO DE RECEITA
 # ----------------------------
@@ -173,6 +181,7 @@ class RecipeUpdateView(generics.UpdateAPIView):
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
+
 # ----------------------------
 # LISTAR CATEGORIAS
 # ----------------------------
@@ -189,6 +198,7 @@ class GetCategoryView(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
 
 # ----------------------------
 # RECEITAS POR CATEGORIA
@@ -217,6 +227,7 @@ class GetRecipeByCategoryView(APIView):
 
         serializer = RecipeSerializer(queryset, many=True)
         return Response(serializer.data)
+
 
 # ----------------------------
 # SEED AUTOMÁTICO
@@ -261,6 +272,7 @@ class SeedCategoriesAndRecipesView(APIView):
 
         return Response({"detail": "Seed de categorias e receitas criada com sucesso."}, status=status.HTTP_201_CREATED)
 
+
 # ----------------------------
 # CRIAR NOVA CATEGORIA
 # ----------------------------
@@ -277,6 +289,7 @@ class CategoryCreateView(generics.CreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
+
 
 # ----------------------------
 # MINHAS RECEITAS (NOVA VIEW)
