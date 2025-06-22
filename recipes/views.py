@@ -277,7 +277,7 @@ class CategoryCreateView(generics.CreateAPIView):
 
 # ----------------------------
 # MINHAS RECEITAS (NOVA VIEW)
-# ----------------------------
+# 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
