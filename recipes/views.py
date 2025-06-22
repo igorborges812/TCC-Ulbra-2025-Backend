@@ -23,10 +23,7 @@ SUPABASE_URL = "https://sizovghaygzecxbgvqvb.supabase.co"
 SUPABASE_BUCKET = "receitas"
 SUPABASE_KEY = "SUA_CHAVE_ANON"  # Substitua por sua chave pública do Supabase
 
-
-def upload_image_to_supabase(filename: str, base64_data: str) -> str:
-    binary_data = base64.b64decode(base64_data)
-
+def upload_image_to_supabase(filename: str, binary_data: bytes) -> str:
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
@@ -41,7 +38,6 @@ def upload_image_to_supabase(filename: str, base64_data: str) -> str:
         raise Exception(f"Erro ao fazer upload: {response.text}")
 
     return f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{filename}"
-
 
 # ----------------------------
 # CRIAÇÃO DE RECEITA
@@ -60,12 +56,13 @@ class RegisterRecipeView(generics.CreateAPIView):
     @transaction.atomic
     def post(self, request, *args, **kwargs):
         data = request.data.copy()
-        image_base64 = data.pop('image_base64', None)
+        image = request.FILES.get('image')
 
-        if image_base64:
+        if image:
             try:
+                binary_data = image.read()
                 filename = ''.join(random.choices(string.ascii_letters + string.digits, k=30)) + ".jpg"
-                image_url = upload_image_to_supabase(filename, image_base64)
+                image_url = upload_image_to_supabase(filename, binary_data)
                 data['image'] = image_url
             except Exception as e:
                 raise ValidationError(f"Erro ao subir imagem para o Supabase: {str(e)}")
