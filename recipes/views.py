@@ -21,7 +21,7 @@ from .serializers import CategorySerializer, RecipeSerializer
 
 SUPABASE_URL = "https://sizovghaygzecxbgvqvb.supabase.co"
 SUPABASE_BUCKET = "receitas"
-SUPABASE_KEY = "SUA_CHAVE_ANON"  # Substitua por sua chave pública do Supabase
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpem92Z2hheWd6ZWN4Ymd2cXZiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTYwODYxMywiZXhwIjoyMDY1MTg0NjEzfQ.ErTX-Bj568patz2nDz9DMVsZ-x-DJrTLxDl9OkBPEPI"  
 
 def upload_image_to_supabase(filename: str, binary_data: bytes) -> str:
     headers = {
