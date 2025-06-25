@@ -12,9 +12,9 @@ class Recipe(models.Model):
     title = models.CharField(max_length=100)
     ingredients = models.JSONField(null=False)
     text_area = models.JSONField(blank=False, null=False)
-    
-    # Armazena apenas a URL da imagem vinda do Supabase
-    image = models.URLField(max_length=500, null=True, blank=True)
+
+    # ✅ Armazena apenas o nome do arquivo (ex: abc123.jpg)
+    image = models.CharField(max_length=255, null=True, blank=True)
 
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
 

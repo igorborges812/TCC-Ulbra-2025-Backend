@@ -29,19 +29,11 @@ def upload_image_to_supabase(filename: str, binary_data: bytes) -> str:
         "Authorization": f"Bearer {SUPABASE_KEY}",
         "Content-Type": "application/octet-stream",
     }
-
     url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/{filename}"
-
     response = httpx.put(url, headers=headers, content=binary_data)
-
     if response.status_code != 200:
         raise Exception(f"Erro ao fazer upload: {response.text}")
-
-    return f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{filename}"
-
-# ----------------------------
-# CRIAÇÃO DE RECEITA
-# ----------------------------
+    return filename
 
 class RegisterRecipeView(generics.CreateAPIView):
     queryset = Recipe.objects.all()
@@ -62,8 +54,8 @@ class RegisterRecipeView(generics.CreateAPIView):
             try:
                 binary_data = image.read()
                 filename = ''.join(random.choices(string.ascii_letters + string.digits, k=30)) + ".jpg"
-                image_url = upload_image_to_supabase(filename, binary_data)
-                data['image'] = image_url
+                stored_filename = upload_image_to_supabase(filename, binary_data)
+                data['image'] = stored_filename  # salva só o nome do arquivo
             except Exception as e:
                 raise ValidationError(f"Erro ao subir imagem para o Supabase: {str(e)}")
 
@@ -72,10 +64,6 @@ class RegisterRecipeView(generics.CreateAPIView):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-# ----------------------------
-# LISTAGEM GERAL DE RECEITAS COM FILTROS
-# ----------------------------
 
 class GetRecipesView(generics.ListAPIView):
     serializer_class = RecipeSerializer
@@ -100,10 +88,6 @@ class GetRecipesView(generics.ListAPIView):
             )
         return queryset
 
-# ----------------------------
-# DETALHE POR ID
-# ----------------------------
-
 class GetRecipeByIdView(generics.RetrieveAPIView):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
@@ -118,20 +102,13 @@ class GetRecipeByIdView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-# ----------------------------
-# BUSCA POR TÍTULO
-# ----------------------------
-
 class GetRecipeByNameView(generics.ListAPIView):
     serializer_class = RecipeSerializer
     permission_classes = (AllowAny,)
 
     @swagger_auto_schema(
         manual_parameters=[
-            openapi.Parameter(
-                'title', openapi.IN_QUERY, description="Nome ou parte do nome da receita",
-                type=openapi.TYPE_STRING, required=True
-            )
+            openapi.Parameter('title', openapi.IN_QUERY, description="Nome ou parte do nome da receita", type=openapi.TYPE_STRING, required=True)
         ],
         operation_description="Filtra receitas pelo título",
         operation_summary="Buscar receitas pelo título",
@@ -143,10 +120,6 @@ class GetRecipeByNameView(generics.ListAPIView):
             return Response({"detail": "Nenhuma receita encontrada com esse nome."}, status=status.HTTP_404_NOT_FOUND)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-# ----------------------------
-# ATUALIZAÇÃO DE RECEITA
-# ----------------------------
 
 class RecipeUpdateView(generics.UpdateAPIView):
     queryset = Recipe.objects.all()
@@ -170,10 +143,6 @@ class RecipeUpdateView(generics.UpdateAPIView):
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
-# ----------------------------
-# LISTAR CATEGORIAS
-# ----------------------------
-
 class GetCategoryView(generics.ListAPIView):
     serializer_class = CategorySerializer
     permission_classes = (AllowAny,)
@@ -186,10 +155,6 @@ class GetCategoryView(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
-
-# ----------------------------
-# RECEITAS POR CATEGORIA
-# ----------------------------
 
 class GetRecipeByCategoryView(APIView):
     permission_classes = (AllowAny,)
@@ -208,16 +173,10 @@ class GetRecipeByCategoryView(APIView):
         queryset = Recipe.objects.filter(category_id=category_id)
         if title:
             queryset = queryset.filter(title__icontains=title)
-
         if not queryset.exists():
             return Response({"detail": "Nenhuma receita encontrada para essa categoria."}, status=status.HTTP_404_NOT_FOUND)
-
         serializer = RecipeSerializer(queryset, many=True)
         return Response(serializer.data)
-
-# ----------------------------
-# SEED AUTOMÁTICO
-# ----------------------------
 
 class SeedCategoriesAndRecipesView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -258,10 +217,6 @@ class SeedCategoriesAndRecipesView(APIView):
 
         return Response({"detail": "Seed de categorias e receitas criada com sucesso."}, status=status.HTTP_201_CREATED)
 
-# ----------------------------
-# CRIAR NOVA CATEGORIA
-# ----------------------------
-
 class CategoryCreateView(generics.CreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -274,10 +229,6 @@ class CategoryCreateView(generics.CreateAPIView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
-
-# ----------------------------
-# MINHAS RECEITAS (NOVA VIEW)
-# 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
