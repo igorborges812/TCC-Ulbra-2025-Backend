@@ -16,11 +16,19 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
 from .models import Category, Recipe
-from .serializers import CategorySerializer, RecipeSerializer
+from .serializers import RecipeSerializer
+
+# ✅ Recriado para evitar erro de importação
+from rest_framework import serializers
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
 
 SUPABASE_URL = "https://sizovghaygzecxbgvqvb.supabase.co"
 SUPABASE_BUCKET = "receitas"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpem92Z2hheWd6ZWN4Ymd2cXZiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTYwODYxMywiZXhwIjoyMDY1MTg0NjEzfQ.ErTX-Bj568patz2nDz9DMVsZ-x-DJrTLxDl9OkBPEPI"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
 def upload_image_to_supabase(filename: str, binary_data: bytes) -> str:
     headers = {
@@ -40,7 +48,7 @@ class RegisterRecipeView(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     @swagger_auto_schema(
-        operation_description="Rota para registro de uma nova receita (pode informar categoria existente ou nova).",
+        operation_description="Rota para registro de uma nova receita.",
         operation_summary="Cria uma receita",
         tags=["Receitas"]
     )
@@ -62,7 +70,6 @@ class RegisterRecipeView(generics.CreateAPIView):
         serializer = self.get_serializer(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class GetRecipesView(generics.ListAPIView):
@@ -73,8 +80,8 @@ class GetRecipesView(generics.ListAPIView):
         manual_parameters=[
             openapi.Parameter('search', openapi.IN_QUERY, description="Busca por título, categoria ou ingrediente", type=openapi.TYPE_STRING)
         ],
-        operation_description="Rota que retorna lista com todas as receitas existentes com possibilidade de filtro",
-        operation_summary="Lista receitas com filtro",
+        operation_description="Lista receitas com filtro",
+        operation_summary="Lista receitas",
         tags=["Receitas"]
     )
     def get_queryset(self):
@@ -95,8 +102,8 @@ class GetRecipeByIdView(generics.RetrieveAPIView):
     lookup_field = 'id'
 
     @swagger_auto_schema(
-        operation_description="Rota que retorna uma receita com base no ID",
-        operation_summary="Retorna uma receita com base no ID",
+        operation_description="Retorna uma receita com base no ID",
+        operation_summary="Receita por ID",
         tags=["Receitas"]
     )
     def get(self, request, *args, **kwargs):
@@ -108,10 +115,10 @@ class GetRecipeByNameView(generics.ListAPIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            openapi.Parameter('title', openapi.IN_QUERY, description="Nome ou parte do nome da receita", type=openapi.TYPE_STRING, required=True)
+            openapi.Parameter('title', openapi.IN_QUERY, description="Nome ou parte do nome", type=openapi.TYPE_STRING, required=True)
         ],
-        operation_description="Filtra receitas pelo título",
-        operation_summary="Buscar receitas pelo título",
+        operation_description="Busca receitas pelo título",
+        operation_summary="Busca por nome",
         tags=["Receitas"]
     )
     def get(self, request, title, *args, **kwargs):
@@ -128,8 +135,8 @@ class RecipeUpdateView(generics.UpdateAPIView):
     lookup_field = 'id'
 
     @swagger_auto_schema(
-        operation_description="Atualiza todos os campos de uma receita (PUT)",
-        operation_summary="Atualiza uma receita",
+        operation_description="Atualiza todos os campos da receita (PUT)",
+        operation_summary="Atualizar receita (PUT)",
         tags=["Receitas"]
     )
     def put(self, request, *args, **kwargs):
@@ -137,7 +144,7 @@ class RecipeUpdateView(generics.UpdateAPIView):
 
     @swagger_auto_schema(
         operation_description="Atualiza parcialmente uma receita (PATCH)",
-        operation_summary="Atualiza parcialmente uma receita",
+        operation_summary="Atualizar receita (PATCH)",
         tags=["Receitas"]
     )
     def patch(self, request, *args, **kwargs):
@@ -150,7 +157,7 @@ class GetCategoryView(generics.ListAPIView):
 
     @swagger_auto_schema(
         operation_description="Lista as categorias cadastradas",
-        operation_summary="Lista categorias",
+        operation_summary="Listar categorias",
         tags=["Receitas"]
     )
     def get(self, request, *args, **kwargs):
@@ -164,8 +171,8 @@ class GetRecipeByCategoryView(APIView):
             openapi.Parameter('category_id', openapi.IN_PATH, description="ID da categoria", type=openapi.TYPE_INTEGER),
             openapi.Parameter('title', openapi.IN_QUERY, description="Filtro por título", type=openapi.TYPE_STRING, required=False)
         ],
-        operation_description="Lista receitas por categoria",
-        operation_summary="Buscar receitas por categoria",
+        operation_description="Busca receitas por categoria",
+        operation_summary="Receitas por categoria",
         tags=["Receitas"]
     )
     def get(self, request, category_id, *args, **kwargs):
@@ -180,19 +187,18 @@ class GetRecipeByCategoryView(APIView):
 
 class SeedCategoriesAndRecipesView(APIView):
     permission_classes = (IsAuthenticated,)
-
     NUM_CATEGORIES = 5
     NUM_RECIPES_PER_CATEGORY = 10
 
     @swagger_auto_schema(
-        operation_description="Cria 5 categorias e 10 receitas para cada uma.",
-        operation_summary="Seed de categorias e receitas",
+        operation_description="Cria categorias e receitas fictícias.",
+        operation_summary="Criar dados fictícios",
         tags=["Seed"]
     )
     def get(self, request, *args, **kwargs):
         user = request.user
         if not user:
-            return Response({"detail": "Nenhum usuário encontrado para associar às receitas."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Usuário não encontrado."}, status=status.HTTP_400_BAD_REQUEST)
 
         categories = []
         for i in range(self.NUM_CATEGORIES):
@@ -202,7 +208,7 @@ class SeedCategoriesAndRecipesView(APIView):
 
         for category in categories:
             for j in range(self.NUM_RECIPES_PER_CATEGORY):
-                title = f'Receita {j+1} da {category.name}'
+                title = f'Receita {j+1} - {category.name}'
                 ingredients = [
                     {"name": f"Ingrediente {k+1}", "quantity": round(random.uniform(1, 5), 2), "unit": "unidade"}
                     for k in range(5)
@@ -214,8 +220,7 @@ class SeedCategoriesAndRecipesView(APIView):
                     text_area=[f"Passo a passo da receita {j+1} da {category.name}"],
                     category=category
                 )
-
-        return Response({"detail": "Seed de categorias e receitas criada com sucesso."}, status=status.HTTP_201_CREATED)
+        return Response({"detail": "Seed criada com sucesso."}, status=status.HTTP_201_CREATED)
 
 class CategoryCreateView(generics.CreateAPIView):
     queryset = Category.objects.all()
@@ -223,7 +228,7 @@ class CategoryCreateView(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     @swagger_auto_schema(
-        operation_description="Cria uma nova categoria de receitas.",
+        operation_description="Cria uma nova categoria.",
         operation_summary="Criar categoria",
         tags=["Receitas"]
     )
