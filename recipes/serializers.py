@@ -1,26 +1,16 @@
 from rest_framework import serializers
 from .models import Category, Recipe
 
+# Configurações do Supabase
 SUPABASE_URL = "https://sizovghaygzecxbgvqvb.supabase.co"
 SUPABASE_BUCKET = "receitas"
-
-class IngredientSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=100)
-    quantity = serializers.FloatField()
-    unit = serializers.CharField(max_length=50)
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = ['id', 'name']
 
 class RecipeSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.nickname')
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), required=False)
     category_name = serializers.CharField(source='category.name', read_only=True)
     new_category = serializers.CharField(write_only=True, required=False)
-
-    image_url = serializers.SerializerMethodField() 
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -30,7 +20,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             'title',
             'ingredients',
             'text_area',
-            'image_url',  
+            'image_url',
             'category',
             'category_name',
             'new_category',
