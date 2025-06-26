@@ -1,9 +1,6 @@
 from rest_framework import serializers
 from .models import Category, Recipe
 
-SUPABASE_URL = "https://sizovghaygzecxbgvqvb.supabase.co"
-SUPABASE_BUCKET = "receitas"
-
 class IngredientSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
     quantity = serializers.FloatField()
@@ -19,7 +16,9 @@ class RecipeSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), required=False)
     category_name = serializers.CharField(source='category.name', read_only=True)
     new_category = serializers.CharField(write_only=True, required=False)
-    image = serializers.SerializerMethodField()
+
+    # Alterado: imagem será apenas o nome salvo, como vem do banco
+    image = serializers.CharField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -34,11 +33,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             'category_name',
             'new_category',
         ]
-
-    def get_image(self, obj):
-        if obj.image:
-            return f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{obj.image}"
-        return f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/default_recipe.png"
 
     def create(self, validated_data):
         user = self.context['request'].user
