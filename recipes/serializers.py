@@ -19,7 +19,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all(), required=False)
     category_name = serializers.CharField(source='category.name', read_only=True)
     new_category = serializers.CharField(write_only=True, required=False)
-    image = serializers.SerializerMethodField()
+
+    image_url = serializers.SerializerMethodField() 
 
     class Meta:
         model = Recipe
@@ -29,13 +30,13 @@ class RecipeSerializer(serializers.ModelSerializer):
             'title',
             'ingredients',
             'text_area',
-            'image',
+            'image_url',  
             'category',
             'category_name',
             'new_category',
         ]
 
-    def get_image(self, obj):
+    def get_image_url(self, obj):
         if obj.image:
             if obj.image.startswith("http"):
                 return obj.image
