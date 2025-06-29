@@ -18,7 +18,6 @@ from drf_yasg.utils import swagger_auto_schema
 from .models import Category, Recipe
 from .serializers import RecipeSerializer
 
-# ✅ Recriado para evitar erro de importação
 from rest_framework import serializers
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -28,7 +27,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 SUPABASE_URL = "https://sizovghaygzecxbgvqvb.supabase.co"
 SUPABASE_BUCKET = "receitas"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."  # mantenha o original aqui
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNpem92Z2hheWd6ZWN4Ymd2cXZiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTYwODYxMywiZXhwIjoyMDY1MTg0NjEzfQ.ErTX-Bj568patz2nDz9DMVsZ-x-DJrTLxDl9OkBPEPI"
 
 def upload_image_to_supabase(filename: str, binary_data: bytes) -> str:
     headers = {
@@ -36,10 +35,9 @@ def upload_image_to_supabase(filename: str, binary_data: bytes) -> str:
         "Authorization": f"Bearer {SUPABASE_KEY}",
         "Content-Type": "application/octet-stream",
     }
-    # ✅ Envia para a pasta recipe_images
     url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET}/recipe_images/{filename}"
     response = httpx.put(url, headers=headers, content=binary_data)
-    if response.status_code != 200:
+    if response.status_code not in (200, 201):
         raise Exception(f"Erro ao fazer upload: {response.text}")
     return f"recipe_images/{filename}"
 
@@ -64,15 +62,11 @@ class RegisterRecipeView(generics.CreateAPIView):
                 extension = image.content_type.split("/")[-1] or "jpg"
                 filename = ''.join(random.choices(string.ascii_letters + string.digits, k=30)) + f".{extension}"
                 stored_path = upload_image_to_supabase(filename, binary_data)
-
-                # ✅ Define a URL pública
                 public_url = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/{stored_path}"
                 data['image'] = public_url
-
             except Exception as e:
                 raise ValidationError(f"Erro ao subir imagem para o Supabase: {str(e)}")
         else:
-            # ✅ Usa imagem padrão
             data['image'] = f"{SUPABASE_URL}/storage/v1/object/public/{SUPABASE_BUCKET}/recipe_images/default.png"
 
         serializer = self.get_serializer(data=data, context={'request': request})
