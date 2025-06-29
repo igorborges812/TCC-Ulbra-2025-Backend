@@ -13,7 +13,7 @@ class Recipe(models.Model):
     ingredients = models.JSONField(null=False)
     text_area = models.JSONField(blank=False, null=False)
 
-    # ✅ Armazena apenas o nome do arquivo (ex: abc123.jpg)
+
     image = models.CharField(max_length=255, null=True, blank=True)
 
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
