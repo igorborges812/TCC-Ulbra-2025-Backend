@@ -1,12 +1,9 @@
+# users/permissions.py
 import requests
 from rest_framework.permissions import BasePermission
 from django.conf import settings
 
-class IsSupabaseAuthenticated(BasePermission):
-    """
-    Permissão que valida tokens do Supabase.
-    """
-
+class IsAuthenticatedWithSupabase(BasePermission):
     def has_permission(self, request, view):
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Bearer '):
@@ -14,13 +11,15 @@ class IsSupabaseAuthenticated(BasePermission):
 
         token = auth_header.split(' ')[1]
 
-        # Valida token consultando o endpoint do Supabase
         response = requests.get(
-            f'{settings.SUPABASE_URL}/auth/v1/user',
+            f"{settings.SUPABASE_URL}/auth/v1/user",
             headers={
-                'apikey': settings.SUPABASE_KEY,
-                'Authorization': f'Bearer {token}'
+                "Authorization": f"Bearer {token}",
+                "apikey": settings.SUPABASE_KEY
             }
         )
 
-        return response.status_code == 200
+        if response.status_code == 200:
+            request.user_supabase = response.json()
+            return True
+        return False

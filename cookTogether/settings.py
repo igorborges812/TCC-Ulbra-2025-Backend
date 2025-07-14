@@ -104,10 +104,10 @@ TEMPLATES = [
 WSGI_APPLICATION = 'cookTogether.wsgi.application'
 
 REST_FRAMEWORK = {
-     'DEFAULT_AUTHENTICATION_CLASSES': [],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': (
+        'users.permissions.IsAuthenticatedWithSupabase',
+    ),
 }
 
 SIMPLE_JWT = {
