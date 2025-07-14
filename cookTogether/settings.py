@@ -10,9 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_CHARSET = 'utf-8'
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
-
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", ".onrender.com,localhost,127.0.0.1").split(",")
-
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # Supabase configs
@@ -35,10 +33,10 @@ SECURE_HSTS_PRELOAD = True
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Banco de dados
+# Banco de dados (corrigido para evitar erro no Render)
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
+    'default': dj_database_url.parse(
+        os.getenv('DATABASE_URL'),
         conn_max_age=600,
         ssl_require=True
     )
@@ -47,7 +45,7 @@ DATABASES = {
 # Arquivos estáticos
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  # ✅ necessário
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Arquivos de mídia
 MEDIA_URL = '/media/'
@@ -72,7 +70,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ✅ necessário
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -82,7 +80,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS aberto para dev
+# CORS liberado
 CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'cookTogether.urls'
