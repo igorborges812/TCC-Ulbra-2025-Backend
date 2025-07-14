@@ -15,13 +15,11 @@ class RecipeSerializer(serializers.ModelSerializer):
             'title',
             'ingredients',
             'text_area',
-            'image',
-            'image_url',
+            'image',  
             'category',
             'category_name',
             'new_category',
         ]
-        read_only_fields = ['image_url']
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -32,17 +30,3 @@ class RecipeSerializer(serializers.ModelSerializer):
             validated_data['category'] = category_obj
 
         return Recipe.objects.create(user=user, **validated_data)
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-
-        image_url = None
-        if instance.image and hasattr(instance.image, 'url'):
-            request = self.context.get('request', None)
-            if request:
-                image_url = request.build_absolute_uri(instance.image.url)
-            else:
-                image_url = instance.image.url
-
-        data['image_url'] = image_url
-        return data
