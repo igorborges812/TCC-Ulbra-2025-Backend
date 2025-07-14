@@ -36,7 +36,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Banco de dados (corrigido para evitar erro no Render)
 DATABASES = {
     'default': dj_database_url.parse(
-        os.getenv('DATABASE_URL'),
+        os.getenv('DATABASE_URL').strip(),
         conn_max_age=600,
         ssl_require=True
     )
