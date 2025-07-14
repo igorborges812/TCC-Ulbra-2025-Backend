@@ -238,9 +238,10 @@ class CategoryCreateView(generics.CreateAPIView):
         return super().post(request, *args, **kwargs)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_my_recipes(request):
     user = request.user
     recipes = Recipe.objects.filter(user=user)
     serializer = RecipeSerializer(recipes, many=True)
     return Response(serializer.data)
+
