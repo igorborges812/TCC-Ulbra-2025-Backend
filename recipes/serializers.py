@@ -36,14 +36,13 @@ class RecipeSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
 
-        # Garantir que o campo image_url funcione mesmo se image estiver None
-        request = self.context.get('request')
-        if instance.image:
-            image_url = instance.image.url
-            if request is not None:
+        image_url = None
+        if instance.image and hasattr(instance.image, 'url'):
+            request = self.context.get('request', None)
+            if request:
                 image_url = request.build_absolute_uri(instance.image.url)
-            data['image_url'] = image_url
-        else:
-            data['image_url'] = None
+            else:
+                image_url = instance.image.url
 
+        data['image_url'] = image_url
         return data
